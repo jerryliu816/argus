@@ -1,0 +1,31 @@
+/oak:
+  ros__parameters:
+    camera:
+      i_pipeline_type: RGBD
+      i_nn_type: none
+      i_enable_imu: false
+      i_enable_preview: false
+      i_max_q_size: 10
+      i_publish_topic: true
+      i_publish_tf_from_calibration: true
+      i_low_bandwidth: false
+      i_low_bandwidth_quality: 50
+      i_usb_speed: SUPER
+      i_board_socket_id: 0
+      i_fps: 30
+      i_resolution: 1080
+      i_manual_focus: 130  # Optional: set to 130 for fixed focus at ~1m
+
+    stereo:
+      i_output_depth: true
+      i_subpixel: true
+      i_align_depth: true
+      i_lr_check: true
+      i_extended_disp: false
+      i_publish_left_rect: true
+      i_publish_right_rect: true
+      i_confidence_threshold: 200
+
+    imu:
+      i_enable_imu: false
+

@@ -1,0 +1,15 @@
+teleop_twist_joy_node:
+  ros__parameters:
+    axis_linear:
+      x: 1         # left stick vertical
+    scale_linear:
+      x: 0.3
+      x_turbo: 1.0
+    axis_angular:
+      yaw: 3       # right stick horizontal
+    scale_angular:
+      yaw: 0.8
+      yaw_turbo: 1.0
+    enable_button: 0        # A button must be held
+    enable_turbo_button: 1  # B button for turbo
+

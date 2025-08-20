@@ -1,0 +1,10 @@
+camera:
+  i_enable_imu: false
+  i_enable_depth: false
+  i_nn_type: none
+  rgb:
+    i_publish: true
+    i_board_socket_id: 0
+    i_resolution: '720p'
+    i_fps: 15   # lower FPS to fit USB2 bandwidth
+
