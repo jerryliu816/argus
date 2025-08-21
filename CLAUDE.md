@@ -3,98 +3,86 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-This is a Raspberry Pi hardware interface codebase called "bytebeast" that provides libraries and examples for various HAT (Hardware Attached on Top) modules:
-
-- **Display Module**: 0.96" and 1.3" LCD displays with SPI interface
-- **Sense HAT**: Multi-sensor board with IMU, pressure, humidity, temperature sensors
-- **Environment Sensors**: BME280, ICM20948, LTR390, SGP40, TSL2591 sensor modules
-- **UPS HAT**: Uninterruptible Power Supply monitoring with INA219
+This repo contains software for a Raspberry Pi running Ubuntu 22.04 and ROS2 Humble, connected to an iRobot Create3, OAK-D-LITE depth camera, and a RPLidar A1. This robot is meant to be a home patrol robot, able to map a house with SLAM, navigate with a package like Nav2, and patrol the house autonomously. It can capture images and use OpenAI API to look for anomalies and remember where things are.
 
 ## Code Architecture
 
-### Core Components
-1. **display/**: LCD display drivers and examples
-   - `lib/`: Core display libraries (LCD_0inch96.py, LCD_1inch3.py, lcdconfig.py)
-   - `example/`: Test scripts for different display configurations
-   - Supports both SPI0 and SPI1 interfaces
+### ROS2 Workspace Structure
+- `create3_ws/`: Main ROS2 workspace containing the drive package
+- `create3_ws/src/drive/`: Custom ROS2 package for robot control
+  - `drive/joy_dock.py`: Xbox controller node for dock/undock actions (X/Y buttons)
+  - `launch/controller.launch.py`: Launch file coordinating joy, teleop_twist_joy, and joy_dock nodes
+  - `config/twist.yaml`: Joystick movement parameters and button mappings
 
-2. **Sense_HAT_C_Pi/**: Comprehensive sensor HAT with multiple language support
-   - `RaspberryPi/`: Contains modules for IMU, LPS22HBTR, SGM58031, SHTC3, TCS34087
-   - Each sensor module has implementations in C (bcm2835, lgpio, wiringPi) and Python
+### Standalone Scripts
+- `scripts/map2img.py`: Subscribes to `/map` topic and saves SLAM maps as timestamped PNG images
+- `scripts/capture_image.py`: Interactive RGB camera capture from `/oak/rgb/image_raw` topic
+- `ColorCamera/`: Collection of OAK-D-LITE camera utility scripts for various video/image processing
 
-3. **environment/**: Environmental sensor modules (BME280.py, ICM20948.py, etc.)
-
-4. **UPS_HAT_C/**: Power management with INA219.py for current/voltage monitoring
-
-5. **lib/**: Contains third-party libraries and demos
-   - WiringPi library for GPIO control
-   - bcm2835 library for low-level access
-   - lg-master (lgpio/rgpio) for modern GPIO access
-
-### Hardware Interface Libraries
-The project supports multiple GPIO access methods:
-- **lgpio/rgpio**: Modern GPIO library (recommended)
-- **wiringPi**: Traditional GPIO library
-- **bcm2835**: Low-level hardware access
-- **Python smbus/spidev**: Python hardware interfaces
+### Network Configuration
+- ROS2 FastDDS server: 192.168.1.201
+- iRobot Create3: 192.168.1.68
+- Files deployed to Raspberry Pi at: `/home/ubuntu`
 
 ## Development Commands
 
-### Display Testing
+### Building the ROS2 Workspace
 ```bash
-cd display/example
-sudo python3 0inch96_spi0ce0.py    # Test first 0.96" screen
-sudo python3 0inch96_spi0ce1.py    # Test second 0.96" screen
-sudo python3 1inch3_spi1ce0.py     # Test 1.3" screen (requires SPI1 enabled)
-sudo python3 double_0inch96_spi.py # Test dual displays
-sudo python3 CPU.py                # Display CPU information
-sudo python3 key_double.py         # Test buttons
+cd create3_ws
+colcon build --packages-select drive
+source install/setup.bash
 ```
 
-### Environment Sensor Testing
+### Testing
+- Tests are defined in package.xml using pytest framework
+- Run package tests: `colcon test --packages-select drive`
+
+### Robot Operation Commands
+
+#### 1. Manual Driving (Xbox Controller)
+Terminal 1:
 ```bash
-cd environment/
-python3 BME280.py     # Test temperature/humidity/pressure
-python3 ICM20948.py   # Test IMU sensor
-python3 LTR390.py     # Test UV/light sensor
-python3 SGP40.py      # Test air quality sensor
-python3 TSL2591.py    # Test light sensor
-python3 test.py       # Run all sensor tests
+source /opt/ros/humble/setup.bash 
+cd ~/argus/create3_ws
+source install/setup.bash
+ros2 launch drive controller.launch.py
 ```
 
-### Sense HAT Testing
+Terminal 2 (keyboard alternative):
 ```bash
-cd Sense_HAT_C_Pi/RaspberryPi/[sensor]/python/
-python3 [sensor_file].py   # Test individual sensors
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
 ```
 
-### Building C Libraries (if needed)
+#### 2. SLAM Mapping
+Terminal 3:
 ```bash
-cd lib/demos/lg-master/
-make                  # Build lgpio/rgpio libraries
+ros2 launch slam_toolbox online_sync_launch.py
 ```
 
-## Hardware Configuration
-- Enable SPI: Add `dtparam=spi=on` to /boot/config.txt
-- Enable SPI1 (for 1.3" display): Add `dtoverlay=spi1-1cs` to /boot/config.txt
-- Enable I2C: Add `dtparam=i2c_arm=on` to /boot/config.txt
+Terminal 4 (capture map):
+```bash
+python3 scripts/map2img.py
+```
 
-## Dependencies
-- Python libraries: smbus, spidev, PIL (Pillow), numpy
-- Run with sudo for hardware access
-- Raspberry Pi OS with GPIO libraries enabled
+#### 3. Camera Operations
 
-## Development Workflow
-1. First think through the problem, read the codebase for relevant files, and write a plan to todo.md
-2. The plan should have a list of todo items that you can check off as you complete them
-3. Before you begin working, check in with me and I will verify the plan
-4. Then, begin working on the todo items, marking them as complete as you go
-5. Please every step of the way just give me a high level explanation of what changes you made
-6. Make every task and code change you do as simple as possible. We want to avoid making any massive or complex changes. Every change should impact as little code as possible. Everything is about simplicity
-7. Finally, add a review section to the todo.md file with a summary of the changes you made and any other relevant information
+Terminal 5
+```bash
+ros2 launch depthai_ros_driver camera.launch.py params_file:="/home/ubuntu/config/my_rgbd.yaml"
+```
+Terminal 6
+```bash
+python3 scripts/capture_image.py  # Interactive RGB capture
+```
 
-## File Patterns
-- Python sensor modules follow pattern: `SensorName.py` with class `SensorName`
-- C implementations have separate directories for each GPIO library (bcm2835, lgpio, wiringPi)
-- Display examples use format: `[size]_[interface].py`
-- Configuration files use `lcdconfig.py` or `DEV_Config.c/h` patterns
+Alternatively that works consistently
+```bash
+python3 ColorCamera/rgb_preview.py
+```
+
+### Key Dependencies
+- ROS2 Humble packages: rclpy, sensor_msgs, irobot_create_msgs, nav_msgs
+- External: cv2, numpy, cv_bridge for image processing
+- Hardware: joy package for Xbox controller, teleop_twist_joy for movement
+
+
