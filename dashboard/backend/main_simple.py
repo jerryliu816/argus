@@ -43,10 +43,10 @@ except ImportError as e:
 
 # Import our custom modules  
 try:
-    import ros_control_simple as ros_control
-    print("✅ ROS control module imported")
+    import ros_bridge as ros_control
+    print("✅ ROS bridge module imported")
 except ImportError as e:
-    print(f"⚠️ ROS control import failed: {e}")
+    print(f"⚠️ ROS bridge import failed: {e}")
     ros_control = None
 
 try:
@@ -79,18 +79,22 @@ async def startup_event():
     
     logger.info("Starting Robot Control Dashboard...")
     
-    # Initialize robot controller
+    # Initialize robot bridge
     if ros_control:
         try:
-            robot_controller = ros_control.get_robot_controller()
-            if robot_controller:
-                logger.info("Robot controller initialized")
+            bridge = ros_control.get_bridge()
+            if bridge and bridge.is_connected():
+                logger.info("ROS bridge initialized and connected")
+                robot_controller = bridge
             else:
-                logger.error("Failed to create robot controller")
+                logger.error("Failed to connect ROS bridge")
+                robot_controller = None
         except Exception as e:
-            logger.error(f"Failed to initialize robot controller: {e}")
+            logger.error(f"Failed to initialize ROS bridge: {e}")
+            robot_controller = None
     else:
-        logger.warning("ROS control module not available")
+        logger.warning("ROS bridge module not available")
+        robot_controller = None
         
     # Initialize camera service
     if CameraService:
@@ -144,7 +148,6 @@ async def websocket_endpoint(websocket: WebSocket):
         # Send stop command when client disconnects
         if ros_control:
             ros_control.publish_twist(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-            ros_control.spin_once()
 
 async def process_control_command(command: Dict):
     """Process incoming control commands"""
@@ -183,8 +186,6 @@ async def process_control_command(command: Dict):
             logger.info(f"Publishing twist: linear=({linear_x:.2f}, {linear_y:.2f}, {linear_z:.2f}), angular=({angular_x:.2f}, {angular_y:.2f}, {angular_z:.2f})")
             ros_control.publish_twist(linear_x, linear_y, linear_z, 
                                     angular_x, angular_y, angular_z)
-            # Process ROS2 callbacks
-            ros_control.spin_once()
         else:
             logger.warning("No robot controller available for movement command")
         
@@ -215,7 +216,6 @@ async def process_control_command(command: Dict):
                         "angular": {"x": 0.0, "y": 0.0, "z": 0.0}}
         if ros_control:
             ros_control.publish_twist(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-            ros_control.spin_once()
 
 # Camera endpoints
 @app.get("/api/camera/thumbnail")
