@@ -17,6 +17,7 @@ This repo contains software for a Raspberry Pi running Ubuntu 22.04 and ROS2 Hum
 ### Standalone Scripts
 - `scripts/map2img.py`: Subscribes to `/map` topic and saves SLAM maps as timestamped PNG images
 - `scripts/capture_image.py`: Interactive RGB camera capture from `/oak/rgb/image_raw` topic
+- `scripts/teleop.py`: Enhanced keyboard teleop with dock/undock support (replaces standard teleop_twist_keyboard)
 - `ColorCamera/`: Collection of OAK-D-LITE camera utility scripts for various video/image processing
 
 ### Network Configuration
@@ -48,7 +49,12 @@ source install/setup.bash
 ros2 launch drive controller.launch.py
 ```
 
-Terminal 2 (keyboard alternative):
+Terminal 2 (enhanced keyboard control with dock/undock):
+```bash
+python3 scripts/teleop.py
+```
+
+Terminal 2 (standard keyboard alternative):
 ```bash
 ros2 run teleop_twist_keyboard teleop_twist_keyboard
 ```
@@ -81,8 +87,18 @@ python3 ColorCamera/rgb_preview.py
 ```
 
 ### Key Dependencies
-- ROS2 Humble packages: rclpy, sensor_msgs, irobot_create_msgs, nav_msgs
+- ROS2 Humble packages: rclpy, sensor_msgs, irobot_create_msgs, nav_msgs, geometry_msgs
 - External: cv2, numpy, cv_bridge for image processing
 - Hardware: joy package for Xbox controller, teleop_twist_joy for movement
+
+### Enhanced Teleop Controls (scripts/teleop.py)
+**Movement**: u,i,o,j,k,l,m,comma,period (same as standard teleop)
+**Holonomic**: Hold shift + movement keys  
+**Speed**: q/z (all speeds), w/x (linear only), e/c (angular only)
+**Dock Commands**: 
+- 'd' = dock robot
+- 's' = undock robot  
+- 'h' = show help
+**Stop**: Any other key, Ctrl-C to quit
 
 
