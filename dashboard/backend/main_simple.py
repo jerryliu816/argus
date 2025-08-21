@@ -242,7 +242,14 @@ async def get_status():
     }
 
 # Serve static files (frontend)
+app.mount("/css", StaticFiles(directory="../frontend/css"), name="css")
+app.mount("/js", StaticFiles(directory="../frontend/js"), name="js")
 app.mount("/static", StaticFiles(directory="../frontend"), name="static")
+
+@app.get("/manifest.json")
+async def get_manifest():
+    """Serve PWA manifest"""
+    return FileResponse("../frontend/manifest.json")
 
 @app.get("/")
 async def read_root():
