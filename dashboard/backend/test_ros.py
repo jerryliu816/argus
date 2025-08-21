@@ -4,12 +4,16 @@ import os
 import sys
 import time
 
-# Set ROS2 environment
+# Set ROS2 environment to match robot configuration
 os.environ['ROS_DOMAIN_ID'] = '0'
 os.environ['RMW_IMPLEMENTATION'] = 'rmw_fastrtps_cpp'
+os.environ['ROS_DISCOVERY_SERVER'] = '127.0.0.1:11811'
+os.environ['ROS_LOCALHOST_ONLY'] = '0'
 
 print(f"ROS_DOMAIN_ID: {os.environ.get('ROS_DOMAIN_ID')}")
 print(f"RMW_IMPLEMENTATION: {os.environ.get('RMW_IMPLEMENTATION')}")
+print(f"ROS_DISCOVERY_SERVER: {os.environ.get('ROS_DISCOVERY_SERVER')}")
+print(f"ROS_LOCALHOST_ONLY: {os.environ.get('ROS_LOCALHOST_ONLY')}")
 
 try:
     import rclpy

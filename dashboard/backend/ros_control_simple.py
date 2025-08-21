@@ -104,9 +104,11 @@ def get_robot_controller():
     
     if _robot_controller is None:
         try:
-            # Ensure ROS2 environment is set
+            # Ensure ROS2 environment is set to match robot configuration
             os.environ['ROS_DOMAIN_ID'] = '0'
             os.environ['RMW_IMPLEMENTATION'] = 'rmw_fastrtps_cpp'
+            os.environ['ROS_DISCOVERY_SERVER'] = '127.0.0.1:11811'
+            os.environ['ROS_LOCALHOST_ONLY'] = '0'
             
             # Initialize ROS2 if not already done
             if not rclpy.ok():
