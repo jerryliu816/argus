@@ -26,7 +26,15 @@ Argus is a sophisticated home patrol robot designed to autonomously monitor and 
 - **Real-time video streaming** with configurable quality settings
 - **OpenAI API integration** for intelligent visual anomaly detection
 
-### 🎮 **Flexible Control Options**
+### 🌐 **Web Dashboard Control** 
+- **Real-time browser control** accessible from any device on the network
+- **Dual input support**: Desktop keyboard controls + mobile virtual joystick
+- **Live camera preview** with thumbnail auto-refresh and click-to-enlarge modal
+- **Progressive Web App (PWA)** - install on mobile home screen for app-like experience
+- **Network accessible** at http://192.168.1.201:8000 for remote operation
+- **Sub-10ms latency** via WebSocket for responsive real-time control
+
+### 🎮 **Traditional Control Options**
 - **Xbox controller support** with customizable button mappings
 - **Automatic docking/undocking** via controller buttons (X/Y)
 - **Keyboard teleoperation** as backup control method
@@ -57,7 +65,9 @@ Argus is a sophisticated home patrol robot designed to autonomously monitor and 
 ### Prerequisites
 - ROS2 Humble installed on Ubuntu 22.04
 - Python 3.8+ with OpenCV and NumPy
-- Xbox controller (optional, for manual control)
+- Modern web browser (2019+ for ES6 support) for dashboard control
+- Network connectivity for remote web access
+- Xbox controller (optional, for traditional manual control)
 
 ### Installation
 1. Clone the repository:
@@ -75,7 +85,23 @@ source install/setup.bash
 
 ### Basic Operation
 
-#### Manual Control
+#### Web Dashboard Control (Recommended)
+```bash
+# Terminal 1 - Start robot controller (REQUIRED FIRST)
+source /opt/ros/humble/setup.bash 
+cd ~/argus/create3_ws
+source install/setup.bash
+ros2 launch drive controller.launch.py
+
+# Terminal 2 - Start web dashboard
+cd ~/argus/dashboard/backend
+python3 main_simple.py
+
+# Access dashboard at: http://192.168.1.201:8000
+# Mobile: Add to home screen for app-like experience
+```
+
+#### Traditional Manual Control
 ```bash
 # Terminal 1 - Start robot control
 source /opt/ros/humble/setup.bash 
@@ -114,6 +140,16 @@ argus/
 │       ├── drive/             # Python modules
 │       ├── launch/            # Launch configurations
 │       └── config/            # Parameter files
+├── dashboard/                 # Web control interface
+│   ├── backend/               # FastAPI server + ROS2 bridge
+│   │   ├── main_simple.py    # Main server (CLI bridge)
+│   │   ├── cli_bridge.py     # ROS2 command bridge
+│   │   └── camera_service.py # OAK-D camera access
+│   ├── frontend/              # Static web interface
+│   │   ├── index.html        # Main dashboard page
+│   │   ├── css/main.css      # Responsive styling
+│   │   └── js/               # Control modules
+│   └── install_simple.sh     # Dashboard setup
 ├── scripts/                   # Standalone utilities
 │   ├── map2img.py            # SLAM map capture
 │   └── capture_image.py      # Camera utilities
@@ -122,8 +158,23 @@ argus/
 └── assets/                   # Documentation media
 ```
 
-## 🎮 Controller Mapping
+## 🎮 Control Methods
 
+### Web Dashboard Controls
+#### Desktop (Keyboard)
+- **Movement**: `u,i,o,j,k,l,m,comma,period` (same as teleop.py)
+- **Holonomic**: Hold `Shift` + movement keys
+- **Speed**: `q/z` (all), `w/x` (linear), `e/c` (angular)  
+- **Dock**: `d` (dock), `s` (undock)
+- **Help**: `h` (toggle help display)
+
+#### Mobile (Touch)
+- **Virtual joystick**: Drag to move robot
+- **Speed sliders**: Adjust linear/angular speeds  
+- **Touch buttons**: Dock/undock controls
+- **Emergency stop**: Large red button
+
+### Xbox Controller Mapping
 - **Left Stick**: Forward/backward movement
 - **Right Stick**: Rotation (yaw)
 - **A Button**: Enable movement (deadman switch)
