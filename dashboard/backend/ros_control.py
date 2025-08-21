@@ -94,16 +94,22 @@ class RobotController:
         cmd_type = command['type']
         
         if cmd_type == 'twist':
-            twist = Twist()
-            twist.linear.x = float(command['linear_x'])
-            twist.linear.y = float(command['linear_y'])  
-            twist.linear.z = float(command['linear_z'])
-            twist.angular.x = float(command['angular_x'])
-            twist.angular.y = float(command['angular_y'])
-            twist.angular.z = float(command['angular_z'])
-            
-            self._node.cmd_vel_publisher.publish(twist)
-            logger.debug(f"Published twist: {twist.linear.x:.2f}, {twist.angular.z:.2f}")
+            try:
+                twist = Twist()
+                twist.linear.x = float(command['linear_x'])
+                twist.linear.y = float(command['linear_y'])  
+                twist.linear.z = float(command['linear_z'])
+                twist.angular.x = float(command['angular_x'])
+                twist.angular.y = float(command['angular_y'])
+                twist.angular.z = float(command['angular_z'])
+                
+                logger.info(f"About to publish twist: linear=({twist.linear.x:.2f}, {twist.linear.y:.2f}, {twist.linear.z:.2f}), angular=({twist.angular.x:.2f}, {twist.angular.y:.2f}, {twist.angular.z:.2f})")
+                
+                self._node.cmd_vel_publisher.publish(twist)
+                logger.info(f"Successfully published twist message")
+                
+            except Exception as e:
+                logger.error(f"Failed to publish twist in _process_command: {e}")
             
         elif cmd_type == 'dock':
             if self._node.dock_client.wait_for_server(timeout_sec=1.0):
