@@ -24,15 +24,26 @@ class ROSBridge:
             # Path to teleop.py
             teleop_path = "/home/ubuntu/argus/scripts/teleop.py"
             
-            # Start teleop.py as subprocess with stdin pipe
+            # Create a pseudo-terminal for teleop.py
+            import pty
+            
+            # Create master and slave file descriptors
+            master_fd, slave_fd = pty.openpty()
+            
+            # Start teleop.py with the slave as stdin/stdout
             self.process = subprocess.Popen(
                 ['python3', teleop_path],
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
+                stdin=slave_fd,
+                stdout=slave_fd,
                 stderr=subprocess.PIPE,
-                text=True,
-                bufsize=0  # Unbuffered
+                text=True
             )
+            
+            # Close slave fd in parent process
+            os.close(slave_fd)
+            
+            # Store master fd for writing
+            self.master_fd = master_fd
             
             self.is_running = True
             logger.info("ROS bridge started successfully")
@@ -59,13 +70,13 @@ class ROSBridge:
     
     def send_key(self, key):
         """Send a key command to teleop.py"""
-        if not self.is_running or not self.process:
+        if not self.is_running or not self.process or not hasattr(self, 'master_fd'):
             logger.warning("ROS bridge not running")
             return False
             
         try:
-            self.process.stdin.write(key)
-            self.process.stdin.flush()
+            # Write key to pseudo-terminal
+            os.write(self.master_fd, key.encode())
             self.last_command_time = time.time()
             logger.debug(f"Sent key: {key}")
             return True
@@ -141,6 +152,14 @@ class ROSBridge:
                 logger.error(f"Error stopping process: {e}")
             
             self.process = None
+        
+        # Close pseudo-terminal
+        if hasattr(self, 'master_fd'):
+            try:
+                os.close(self.master_fd)
+                delattr(self, 'master_fd')
+            except Exception as e:
+                logger.error(f"Error closing master fd: {e}")
         
         logger.info("ROS bridge stopped")
     
