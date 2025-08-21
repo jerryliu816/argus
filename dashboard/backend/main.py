@@ -1,5 +1,21 @@
 #!/usr/bin/env python3
 
+# Fix Python path to include user packages before importing
+import sys
+import os
+import site
+
+# Add user site-packages to Python path (needed when ROS2 overrides PYTHONPATH)
+user_site = site.getusersitepackages()
+if user_site not in sys.path:
+    sys.path.insert(0, user_site)
+
+# Also add the specific user packages directory for this user
+current_user = os.environ.get('USER', 'ubuntu')
+user_packages = f'/home/{current_user}/.local/lib/python3.10/site-packages'
+if user_packages not in sys.path:
+    sys.path.insert(0, user_packages)
+
 import asyncio
 import json
 import logging
