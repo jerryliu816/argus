@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Control Dashboard</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2196F3">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🤖 Robot Control Dashboard</h1>
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-label">Connection:</span>
+                    <span id="connection-status" class="status-value disconnected">Disconnected</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Robot:</span>
+                    <span id="robot-status" class="status-value unknown">Unknown</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Camera:</span>
+                    <span id="camera-status" class="status-value unknown">Unknown</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Emergency Stop -->
+        <div class="emergency-stop">
+            <button id="emergency-stop" class="emergency-btn">🛑 EMERGENCY STOP</button>
+        </div>
+
+        <!-- Main Control Area -->
+        <div class="main-controls">
+            <!-- Left Side - Movement Controls -->
+            <div class="control-panel">
+                <h2>Movement Control</h2>
+                
+                <!-- Device Type Indicator -->
+                <div class="device-indicator">
+                    <span id="device-type">Detecting input device...</span>
+                </div>
+
+                <!-- Keyboard Controls (Desktop) -->
+                <div id="keyboard-controls" class="keyboard-section hidden">
+                    <div class="keyboard-help">
+                        <h3>Keyboard Controls</h3>
+                        <div class="key-grid">
+                            <div class="key-row">
+                                <span class="key">u</span>
+                                <span class="key">i</span>
+                                <span class="key">o</span>
+                            </div>
+                            <div class="key-row">
+                                <span class="key">j</span>
+                                <span class="key">k</span>
+                                <span class="key">l</span>
+                            </div>
+                            <div class="key-row">
+                                <span class="key">m</span>
+                                <span class="key">,</span>
+                                <span class="key">.</span>
+                            </div>
+                        </div>
+                        <div class="help-text">
+                            <p><strong>Movement:</strong> u,i,o,j,k,l,m,comma,period</p>
+                            <p><strong>Holonomic:</strong> Hold Shift + movement</p>
+                            <p><strong>Speed:</strong> q/z (all), w/x (linear), e/c (angular)</p>
+                            <p><strong>Dock:</strong> d (dock), s (undock)</p>
+                            <p><strong>Help:</strong> h (show/hide this help)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Touch Controls (Mobile) -->
+                <div id="touch-controls" class="touch-section hidden">
+                    <div class="joystick-container">
+                        <div id="joystick" class="joystick">
+                            <div id="joystick-knob" class="joystick-knob"></div>
+                        </div>
+                        <div class="joystick-label">Virtual Joystick</div>
+                    </div>
+                </div>
+
+                <!-- Speed Controls -->
+                <div class="speed-controls">
+                    <h3>Speed Settings</h3>
+                    <div class="speed-sliders">
+                        <div class="slider-group">
+                            <label for="linear-speed">Linear Speed:</label>
+                            <input type="range" id="linear-speed" min="0.1" max="2.0" step="0.1" value="0.5">
+                            <span id="linear-speed-value">0.5 m/s</span>
+                        </div>
+                        <div class="slider-group">
+                            <label for="angular-speed">Angular Speed:</label>
+                            <input type="range" id="angular-speed" min="0.1" max="3.0" step="0.1" value="1.0">
+                            <span id="angular-speed-value">1.0 rad/s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dock Controls -->
+                <div class="dock-controls">
+                    <button id="dock-btn" class="dock-btn">🚪 Dock</button>
+                    <button id="undock-btn" class="undock-btn">🏃 Undock</button>
+                </div>
+            </div>
+
+            <!-- Right Side - Camera and Status -->
+            <div class="info-panel">
+                <h2>Camera Feed</h2>
+                
+                <!-- Camera Preview -->
+                <div class="camera-section">
+                    <div class="camera-preview" id="camera-preview">
+                        <img id="camera-thumbnail" src="" alt="Camera feed" class="camera-img">
+                        <div class="camera-overlay">
+                            <button id="camera-refresh" class="camera-btn">🔄 Refresh</button>
+                            <button id="camera-fullscreen" class="camera-btn">🔍 Enlarge</button>
+                        </div>
+                        <div id="camera-loading" class="camera-loading hidden">Loading...</div>
+                        <div id="camera-error" class="camera-error hidden">Camera not available</div>
+                    </div>
+                </div>
+
+                <!-- Current Status -->
+                <div class="status-section">
+                    <h3>Current Status</h3>
+                    <div class="status-grid">
+                        <div class="status-row">
+                            <span class="label">Linear Speed:</span>
+                            <span id="current-linear">0.0 m/s</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="label">Angular Speed:</span>
+                            <span id="current-angular">0.0 rad/s</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="label">Movement:</span>
+                            <span id="current-movement">Stopped</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="label">Last Command:</span>
+                            <span id="last-command">None</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Future Features -->
+                <div class="future-features">
+                    <h3>AI Analysis</h3>
+                    <button id="analyze-btn" class="analyze-btn" disabled>📸 Capture & Analyze</button>
+                    <p class="feature-note">Coming in Phase 3</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div id="camera-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Camera View</h3>
+                <button id="modal-close" class="modal-close">✕</button>
+            </div>
+            <div class="modal-body">
+                <img id="camera-full" src="" alt="Full camera view" class="camera-full-img">
+                <div class="modal-controls">
+                    <button id="modal-refresh" class="camera-btn">🔄 Refresh</button>
+                    <button id="modal-download" class="camera-btn">💾 Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/websocket.js"></script>
+    <script src="js/keyboard.js"></script>
+    <script src="js/touch.js"></script>
+    <script src="js/camera.js"></script>
+    <script src="js/controls.js"></script>
+</body>
+</html>

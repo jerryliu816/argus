@@ -1,0 +1,25 @@
+{
+  "name": "Robot Control Dashboard",
+  "short_name": "RobotDash",
+  "description": "Real-time robot control dashboard for autonomous patrol robot",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#2196F3",
+  "background_color": "#667eea",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%232196F3'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='white'%3E🤖%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%232196F3'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='white'%3E🤖%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "en-US",
+  "dir": "ltr"
+}

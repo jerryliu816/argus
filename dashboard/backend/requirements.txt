@@ -1,0 +1,28 @@
+# Robot Control Dashboard - Python Dependencies
+
+# Web framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# WebSocket support
+websockets==12.0
+
+# ROS2 integration
+rclpy  # Installed via ROS2 apt packages
+
+# Camera support (DepthAI)
+depthai==2.23.0.0
+
+# Image processing
+opencv-python==4.8.1.78
+numpy==1.24.3
+
+# iRobot Create3 messages
+# irobot_create_msgs  # Installed via ROS2 apt packages
+
+# Optional: For future OpenAI integration
+# openai==1.3.5
+
+# Optional: For SLAM file reading
+# pyyaml==6.0.1
+# pillow==10.1.0
