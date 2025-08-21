@@ -2,7 +2,6 @@
 
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import qos_profile_default
 from rclpy.action import ActionClient
 
 from geometry_msgs.msg import Twist
@@ -87,7 +86,7 @@ class TeleopTwistKeyboardDock(Node):
         super().__init__('teleop_twist_keyboard_dock')
         
         # Twist publisher
-        self.pub = self.create_publisher(Twist, 'cmd_vel', qos_profile_default)
+        self.pub = self.create_publisher(Twist, 'cmd_vel', 10)
         
         # Dock/Undock action clients
         self.dock_client = ActionClient(self, Dock, '/dock')
