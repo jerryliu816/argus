@@ -92,6 +92,11 @@ class RobotControls {
     }
 
     setInputDevice(device) {
+        // Prevent infinite loops
+        if (this.inputDevice === device) {
+            return;
+        }
+        
         this.inputDevice = device;
         
         const deviceIndicator = document.getElementById('device-type');
@@ -103,16 +108,10 @@ class RobotControls {
             if (keyboardControls) keyboardControls.classList.remove('hidden');
             if (touchControls) touchControls.classList.add('hidden');
             
-            // Show keyboard help initially
-            this.keyboard.showHelp();
-            
         } else if (device === 'touch') {
             if (deviceIndicator) deviceIndicator.textContent = '📱 Touch Mode';
             if (keyboardControls) keyboardControls.classList.add('hidden');
             if (touchControls) touchControls.classList.remove('hidden');
-            
-            // Hide keyboard help
-            this.keyboard.hideHelp();
         }
         
         console.log(`Input device set to: ${device}`);
