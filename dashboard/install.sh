@@ -33,19 +33,45 @@ source /opt/ros/humble/setup.bash
 if ! command -v python3 &> /dev/null; then
     echo "❌ Python 3 not found. Installing..."
     sudo apt update
-    sudo apt install -y python3 python3-pip python3-venv
+    sudo apt install -y python3 python3-pip python3-venv python3-dev
 fi
 
-echo "✅ Python 3 found"
+echo "✅ Python 3 found: $(python3 --version)"
+
+# Ensure we have the necessary Python packages
+echo "📦 Installing essential Python packages..."
+sudo apt install -y python3-venv python3-pip python3-dev build-essential
 
 # Create Python virtual environment
 VENV_DIR="$DASHBOARD_DIR/venv"
 if [[ ! -d "$VENV_DIR" ]]; then
     echo "🐍 Creating Python virtual environment..."
     python3 -m venv "$VENV_DIR"
+    
+    # Check if venv creation was successful
+    if [[ ! -f "$VENV_DIR/bin/activate" ]]; then
+        echo "❌ Failed to create virtual environment. Installing python3-venv..."
+        sudo apt install -y python3-venv python3-dev
+        python3 -m venv "$VENV_DIR"
+        
+        # Final check
+        if [[ ! -f "$VENV_DIR/bin/activate" ]]; then
+            echo "❌ Still cannot create virtual environment. Trying alternative method..."
+            sudo apt install -y python3-virtualenv
+            virtualenv -p python3 "$VENV_DIR"
+        fi
+    fi
+fi
+
+# Verify venv exists before activating
+if [[ ! -f "$VENV_DIR/bin/activate" ]]; then
+    echo "❌ Virtual environment activation script not found!"
+    echo "Please check Python installation and try again."
+    exit 1
 fi
 
 # Activate virtual environment
+echo "🐍 Activating virtual environment..."
 source "$VENV_DIR/bin/activate"
 
 # Upgrade pip
