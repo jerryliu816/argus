@@ -27,6 +27,21 @@ class SimpleRobotController(Node):
         logger.info(f"Node name: {self.get_name()}")
         logger.info(f"ROS_DOMAIN_ID: {os.environ.get('ROS_DOMAIN_ID', 'not set')}")
         logger.info(f"RMW_IMPLEMENTATION: {os.environ.get('RMW_IMPLEMENTATION', 'not set')}")
+        
+        # Test discovery - check if we can see other nodes
+        try:
+            import time
+            time.sleep(2)  # Wait for discovery
+            node_names = self.get_node_names()
+            logger.info(f"Discovered {len(node_names)} other nodes: {node_names[:5]}...")
+            
+            # Check for specific nodes we expect
+            expected_nodes = ['/motion_control', '/robot_state', '/ui_mgr']
+            found_nodes = [name for name in expected_nodes if name in node_names]
+            logger.info(f"Found expected robot nodes: {found_nodes}")
+            
+        except Exception as e:
+            logger.error(f"Failed to discover other nodes: {e}")
     
     def publish_twist(self, linear_x: float, linear_y: float, linear_z: float,
                      angular_x: float, angular_y: float, angular_z: float):
