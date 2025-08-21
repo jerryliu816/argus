@@ -65,9 +65,16 @@ class RobotController:
             while not self._should_stop and rclpy.ok():
                 # Process any queued commands
                 try:
+                    commands_processed = 0
                     while not self._command_queue.empty():
                         command = self._command_queue.get_nowait()
+                        logger.info(f"ROS worker processing command: {command['type']}")
                         self._process_command(command)
+                        commands_processed += 1
+                    
+                    if commands_processed > 0:
+                        logger.info(f"Processed {commands_processed} commands")
+                        
                 except queue.Empty:
                     pass
                 
@@ -136,6 +143,7 @@ class RobotController:
                 'angular_z': angular_z
             }
             self._command_queue.put(command)
+            logger.info(f"Queued twist command: queue size = {self._command_queue.qsize()}")
             return True
             
         except Exception as e:
