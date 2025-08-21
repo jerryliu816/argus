@@ -101,4 +101,43 @@ python3 ColorCamera/rgb_preview.py
 - 'h' = show help
 **Stop**: Any other key, Ctrl-C to quit
 
+## Web Dashboard
+
+### Overview
+A web-based control interface accessible at `192.168.1.201:8000` providing real-time robot control via browser.
+
+### Starting the Dashboard
+**CRITICAL**: Must start ROS2 controller first:
+```bash
+# Terminal 1: Start ROS2 controller (REQUIRED)
+source /opt/ros/humble/setup.bash 
+cd ~/argus/create3_ws
+source install/setup.bash
+ros2 launch drive controller.launch.py
+
+# Terminal 2: Start dashboard
+cd ~/argus/dashboard/backend
+python3 main_simple.py
+```
+
+### Features
+- **Dual input**: Keyboard (desktop) and touch controls (mobile)
+- **Real-time control**: WebSocket with <10ms latency
+- **Camera preview**: Live OAK-D-LITE thumbnails with click-to-enlarge
+- **Mobile PWA**: Can be installed on phone home screen
+- **Speed control**: Adjustable linear/angular speeds
+- **Dock/undock**: Robot docking station control
+
+### Controls
+- **Keyboard**: Same mappings as teleop.py (u,i,o,j,k,l,m,comma,period)
+- **Touch**: Virtual joystick for mobile devices
+- **Emergency stop**: Immediate movement halt
+- **Camera**: Auto-refresh thumbnails, modal view
+
+### Technical Implementation
+- **Backend**: FastAPI server with WebSocket (main_simple.py)
+- **ROS2 Bridge**: CLI command bridge (cli_bridge.py) - bypasses Python ROS2 discovery issues
+- **Camera**: Direct DepthAI access (camera_service.py)
+- **Network**: Binds to 192.168.1.201:8000 for remote access
+
 
