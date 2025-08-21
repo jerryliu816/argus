@@ -4,6 +4,19 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 
+# Core dependencies for uvicorn/fastapi
+click>=8.0.0
+typing-extensions>=4.0.0
+pydantic>=2.0.0
+starlette>=0.27.0
+python-multipart
+anyio>=3.4.0
+
+# Performance dependencies
+uvloop>=0.14.0
+httptools>=0.5.0
+watchfiles>=0.13
+
 # WebSocket support
 websockets==12.0
 
