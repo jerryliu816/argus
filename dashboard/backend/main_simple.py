@@ -43,11 +43,11 @@ except ImportError as e:
 
 # Import our custom modules  
 try:
-    from ros_control import RobotController
+    import ros_control_simple as ros_control
     print("✅ ROS control module imported")
 except ImportError as e:
     print(f"⚠️ ROS control import failed: {e}")
-    RobotController = None
+    ros_control = None
 
 try:
     from camera_service import CameraService
@@ -80,14 +80,17 @@ async def startup_event():
     logger.info("Starting Robot Control Dashboard...")
     
     # Initialize robot controller
-    if RobotController:
+    if ros_control:
         try:
-            robot_controller = RobotController()
-            logger.info("Robot controller initialized")
+            robot_controller = ros_control.get_robot_controller()
+            if robot_controller:
+                logger.info("Robot controller initialized")
+            else:
+                logger.error("Failed to create robot controller")
         except Exception as e:
             logger.error(f"Failed to initialize robot controller: {e}")
     else:
-        logger.warning("RobotController not available")
+        logger.warning("ROS control module not available")
         
     # Initialize camera service
     if CameraService:
@@ -106,8 +109,8 @@ async def shutdown_event():
     
     logger.info("Shutting down services...")
     
-    if robot_controller:
-        robot_controller.stop()
+    if ros_control:
+        ros_control.shutdown()
     if camera_service:
         camera_service.stop()
 
@@ -139,8 +142,9 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.info(f"Client disconnected. Active connections: {len(active_connections)}")
         
         # Send stop command when client disconnects
-        if robot_controller:
-            robot_controller.publish_twist(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        if ros_control:
+            ros_control.publish_twist(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+            ros_control.spin_once()
 
 async def process_control_command(command: Dict):
     """Process incoming control commands"""
@@ -175,10 +179,12 @@ async def process_control_command(command: Dict):
         }
         
         # Send to robot
-        if robot_controller:
+        if ros_control:
             logger.info(f"Publishing twist: linear=({linear_x:.2f}, {linear_y:.2f}, {linear_z:.2f}), angular=({angular_x:.2f}, {angular_y:.2f}, {angular_z:.2f})")
-            robot_controller.publish_twist(linear_x, linear_y, linear_z, 
-                                         angular_x, angular_y, angular_z)
+            ros_control.publish_twist(linear_x, linear_y, linear_z, 
+                                    angular_x, angular_y, angular_z)
+            # Process ROS2 callbacks
+            ros_control.spin_once()
         else:
             logger.warning("No robot controller available for movement command")
         
@@ -193,22 +199,23 @@ async def process_control_command(command: Dict):
         
     elif cmd_type == "dock":
         # Dock command
-        if robot_controller:
-            success = robot_controller.dock()
+        if ros_control:
+            success = ros_control.dock()
             logger.info(f"Dock command result: {success}")
             
     elif cmd_type == "undock":
         # Undock command
-        if robot_controller:
-            success = robot_controller.undock()
+        if ros_control:
+            success = ros_control.undock()
             logger.info(f"Undock command result: {success}")
             
     elif cmd_type == "stop":
         # Emergency stop
         current_twist = {"linear": {"x": 0.0, "y": 0.0, "z": 0.0}, 
                         "angular": {"x": 0.0, "y": 0.0, "z": 0.0}}
-        if robot_controller:
-            robot_controller.publish_twist(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        if ros_control:
+            ros_control.publish_twist(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+            ros_control.spin_once()
 
 # Camera endpoints
 @app.get("/api/camera/thumbnail")
@@ -242,7 +249,7 @@ async def get_camera_full():
 async def get_status():
     """Get system status"""
     return {
-        "robot_connected": robot_controller is not None and robot_controller.is_connected(),
+        "robot_connected": ros_control is not None and ros_control.is_connected(),
         "camera_connected": camera_service is not None and camera_service.is_connected(),
         "active_connections": len(active_connections),
         "current_speed": speed_settings,
