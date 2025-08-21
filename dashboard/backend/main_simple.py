@@ -43,10 +43,10 @@ except ImportError as e:
 
 # Import our custom modules  
 try:
-    import ros_bridge as ros_control
-    print("✅ ROS bridge module imported")
+    import subprocess_bridge as ros_control
+    print("✅ Subprocess bridge module imported")
 except ImportError as e:
-    print(f"⚠️ ROS bridge import failed: {e}")
+    print(f"⚠️ Subprocess bridge import failed: {e}")
     ros_control = None
 
 try:
