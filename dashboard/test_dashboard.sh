@@ -41,6 +41,10 @@ if [[ -f "../venv/bin/activate" ]]; then
     echo "✅ Using virtual environment Python: $(which python)"
 else
     echo "🐍 Using system Python: $(which python3)"
+    # Add user-installed packages to Python path
+    export PYTHONPATH="/home/$USER/.local/lib/python3.10/site-packages:$PYTHONPATH"
+    export PATH="/home/$USER/.local/bin:$PATH"
+    echo "✅ Added user packages to Python path"
 fi
 
 # Set ROS environment variables
