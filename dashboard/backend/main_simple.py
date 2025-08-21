@@ -147,8 +147,13 @@ async def process_control_command(command: Dict):
     global current_twist, speed_settings
     
     cmd_type = command.get("type")
+    logger.info(f"Processing command: {cmd_type}")
     
-    if cmd_type == "move":
+    if cmd_type == "ping":
+        # Ping command - just acknowledge
+        logger.debug("Ping received")
+        
+    elif cmd_type == "move":
         # Movement command
         linear_x = command.get("linear_x", 0.0)
         linear_y = command.get("linear_y", 0.0) 
@@ -171,8 +176,11 @@ async def process_control_command(command: Dict):
         
         # Send to robot
         if robot_controller:
+            logger.info(f"Publishing twist: linear=({linear_x:.2f}, {linear_y:.2f}, {linear_z:.2f}), angular=({angular_x:.2f}, {angular_y:.2f}, {angular_z:.2f})")
             robot_controller.publish_twist(linear_x, linear_y, linear_z, 
                                          angular_x, angular_y, angular_z)
+        else:
+            logger.warning("No robot controller available for movement command")
         
     elif cmd_type == "speed":
         # Speed adjustment
