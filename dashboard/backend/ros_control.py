@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
@@ -52,6 +53,12 @@ class RobotController:
     def _ros_worker(self):
         """ROS2 worker thread"""
         try:
+            # Ensure ROS2 environment is set
+            os.environ['ROS_DOMAIN_ID'] = '0'
+            os.environ['RMW_IMPLEMENTATION'] = 'rmw_fastrtps_cpp'
+            
+            logger.info(f"Setting ROS environment: DOMAIN_ID={os.environ.get('ROS_DOMAIN_ID')}, RMW={os.environ.get('RMW_IMPLEMENTATION')}")
+            
             # Initialize ROS2
             rclpy.init()
             
@@ -60,6 +67,10 @@ class RobotController:
             
             self._connected = True
             logger.info("ROS2 robot controller initialized successfully")
+            logger.info(f"ROS_DOMAIN_ID: {os.environ.get('ROS_DOMAIN_ID', 'not set')}")
+            logger.info(f"RMW_IMPLEMENTATION: {os.environ.get('RMW_IMPLEMENTATION', 'not set')}")
+            logger.info(f"Node name: {self._node.get_name()}")
+            logger.info(f"Publisher topic: /cmd_vel")
             
             # Spin and process commands
             while not self._should_stop and rclpy.ok():
