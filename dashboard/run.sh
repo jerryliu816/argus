@@ -46,14 +46,18 @@ if netstat -tln | grep -q ":8000 "; then
     sleep 2
 fi
 
-# Get local IP for display
-LOCAL_IP=$(hostname -I | awk '{print $1}' 2>/dev/null || echo "localhost")
+# Get local IP for display - prioritize 192.168.1.x subnet
+LOCAL_IP=$(hostname -I | tr ' ' '\n' | grep '^192\.168\.1\.' | head -1)
+if [[ -z "$LOCAL_IP" ]]; then
+    LOCAL_IP=$(hostname -I | awk '{print $1}' 2>/dev/null || echo "localhost")
+fi
 
 echo ""
 echo "🚀 Starting dashboard server..."
 echo "📱 Access URLs:"
-echo "   Local:  http://localhost:8000"
-echo "   Remote: http://$LOCAL_IP:8000"
+echo "   Target:  http://192.168.1.201:8000"
+echo "   Local:   http://localhost:8000"
+echo "   Auto:    http://$LOCAL_IP:8000"
 echo ""
 echo "🔧 Controls:"
 echo "   Ctrl+C to stop"

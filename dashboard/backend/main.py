@@ -203,9 +203,28 @@ async def read_root():
     return FileResponse("../frontend/index.html")
 
 if __name__ == "__main__":
+    # Configure server to bind to specific IP
+    import socket
+    
+    # Try to get the 192.168.1.x IP address
+    target_ip = "192.168.1.201"
+    
+    # Verify the IP is available on this machine
+    try:
+        # Test if we can bind to this IP
+        test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        test_socket.bind((target_ip, 0))  # Bind to any available port for testing
+        test_socket.close()
+        host_ip = target_ip
+        logger.info(f"Binding to target IP: {host_ip}")
+    except OSError:
+        # Fall back to all interfaces if specific IP not available
+        host_ip = "0.0.0.0"
+        logger.warning(f"Could not bind to {target_ip}, using {host_ip} instead")
+    
     uvicorn.run(
         "main:app", 
-        host="0.0.0.0", 
+        host=host_ip, 
         port=8000, 
         reload=False,  # Disable reload for production
         log_level="info"
