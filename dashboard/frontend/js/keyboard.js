@@ -50,7 +50,7 @@ class KeyboardController {
         this.isMoving = false;
         this.keysPressed = new Set();
         this.activeMovementKey = null;
-        this.animationFrame = null;
+        this.repeatInterval = null;
         
         // Help visibility
         this.helpVisible = false;
@@ -84,8 +84,8 @@ class KeyboardController {
         else if (key === '<') key = '<'; // Shift + comma
         else if (key === '>') key = '>'; // Shift + period
         
-        // Prevent key repeats for non-movement keys
-        if (this.keysPressed.has(key) && !(key in this.moveBindings)) {
+        // Prevent all key repeats - we'll handle movement repeats manually
+        if (this.keysPressed.has(key)) {
             return;
         }
         
@@ -129,29 +129,28 @@ class KeyboardController {
         this.isMoving = true;
         this.activeMovementKey = key;
         
-        // Send movement command
+        // Send initial movement command
         this.sendMovementCommand();
         
-        // Start continuous movement loop
-        this.startContinuousMovement();
+        // Start repeat interval (like terminal key repeat)
+        this.startKeyRepeat();
         
         // Update UI
         this.updateMovementDisplay(key);
     }
 
-    startContinuousMovement() {
-        if (this.animationFrame) {
-            cancelAnimationFrame(this.animationFrame);
+    startKeyRepeat() {
+        // Clear any existing interval
+        if (this.repeatInterval) {
+            clearInterval(this.repeatInterval);
         }
         
-        const moveLoop = () => {
+        // Start repeating every 100ms while key is held
+        this.repeatInterval = setInterval(() => {
             if (this.isMoving && this.activeMovementKey) {
                 this.sendMovementCommand();
-                this.animationFrame = requestAnimationFrame(moveLoop);
             }
-        };
-        
-        this.animationFrame = requestAnimationFrame(moveLoop);
+        }, 100);
     }
 
     handleSpeedKey(key) {
@@ -185,10 +184,10 @@ class KeyboardController {
         this.isMoving = false;
         this.activeMovementKey = null;
         
-        // Stop animation loop
-        if (this.animationFrame) {
-            cancelAnimationFrame(this.animationFrame);
-            this.animationFrame = null;
+        // Stop repeat interval
+        if (this.repeatInterval) {
+            clearInterval(this.repeatInterval);
+            this.repeatInterval = null;
         }
         
         // Send stop command
