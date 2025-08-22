@@ -67,13 +67,13 @@ class RobotControls {
     }
 
     setupInputDetection() {
-        // Detect keyboard usage
-        document.addEventListener('keydown', () => {
-            if (this.inputDevice !== 'keyboard') {
-                this.setInputDevice('keyboard');
-            }
-            this.lastInputTime = Date.now();
-        });
+        // Detect keyboard usage - DISABLED since keyboard isn't working
+        // document.addEventListener('keydown', () => {
+        //     if (this.inputDevice !== 'keyboard') {
+        //         this.setInputDevice('keyboard');
+        //     }
+        //     this.lastInputTime = Date.now();
+        // });
         
         // Detect touch usage
         document.addEventListener('touchstart', () => {
