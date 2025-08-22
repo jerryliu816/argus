@@ -82,8 +82,8 @@ class KeyboardController {
         else if (key === '<') key = '<'; // Shift + comma
         else if (key === '>') key = '>'; // Shift + period
         
-        // Check if key is already pressed (prevent repeat)
-        if (this.keysPressed.has(key)) {
+        // Allow movement key repeats for continuous movement
+        if (this.keysPressed.has(key) && !(key in this.moveBindings)) {
             return;
         }
         
@@ -115,9 +115,13 @@ class KeyboardController {
         
         this.keysPressed.delete(key);
         
-        // If it was a movement key, stop movement
+        // Only stop movement if no movement keys are pressed
         if (key in this.moveBindings) {
-            this.stopMovement();
+            // Check if any movement keys are still pressed
+            const stillPressed = Array.from(this.keysPressed).some(k => k in this.moveBindings);
+            if (!stillPressed) {
+                this.stopMovement();
+            }
         }
     }
 
