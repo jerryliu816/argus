@@ -15,6 +15,8 @@ class CLIBridge:
     def __init__(self):
         self.is_running = True
         self.last_publish_time = 0
+        self.battery_percentage = None
+        self.battery_thread = None
         
     def start(self):
         """Start the bridge (test ros2 CLI availability)"""
@@ -30,6 +32,8 @@ class CLIBridge:
             
             if result.returncode == 0 and '/cmd_vel' in result.stdout:
                 logger.info("CLI bridge initialized successfully - /cmd_vel topic found")
+                # Start battery monitoring thread
+                self._start_battery_monitoring()
                 return True
             else:
                 logger.error(f"CLI bridge test failed: {result.stderr}")
@@ -49,6 +53,55 @@ class CLIBridge:
             'ROS_LOCALHOST_ONLY': '0'
         })
         return env
+    
+    def _start_battery_monitoring(self):
+        """Start background thread to monitor battery status"""
+        if self.battery_thread is None or not self.battery_thread.is_alive():
+            self.battery_thread = threading.Thread(target=self._monitor_battery, daemon=True)
+            self.battery_thread.start()
+            logger.info("Battery monitoring thread started")
+    
+    def _monitor_battery(self):
+        """Monitor battery status in background thread"""
+        while self.is_running:
+            try:
+                # Use ros2 topic echo --once to get latest battery status
+                result = subprocess.run(
+                    ['ros2', 'topic', 'echo', '/battery_state', '--once'],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    env=self._get_ros_env()
+                )
+                
+                if result.returncode == 0 and result.stdout:
+                    # Parse the battery percentage from the output
+                    lines = result.stdout.split('\n')
+                    for line in lines:
+                        if line.strip().startswith('percentage:'):
+                            try:
+                                percentage_str = line.split(':')[1].strip()
+                                percentage = float(percentage_str)
+                                # Convert from 0-1 range to 0-100 percentage
+                                self.battery_percentage = int(percentage * 100)
+                                logger.debug(f"Battery percentage updated: {self.battery_percentage}%")
+                                break
+                            except (ValueError, IndexError) as e:
+                                logger.warning(f"Failed to parse battery percentage: {e}")
+                else:
+                    logger.warning("Failed to get battery status")
+                    
+            except subprocess.TimeoutExpired:
+                logger.warning("Battery status check timed out")
+            except Exception as e:
+                logger.error(f"Error monitoring battery: {e}")
+            
+            # Wait 5 seconds before next check
+            time.sleep(5)
+    
+    def get_battery_percentage(self):
+        """Get current battery percentage"""
+        return self.battery_percentage
     
     def publish_twist(self, linear_x, linear_y, linear_z, angular_x, angular_y, angular_z):
         """Publish twist using ros2 topic pub command"""
@@ -154,6 +207,8 @@ angular:
     def stop(self):
         """Stop the bridge"""
         self.is_running = False
+        if self.battery_thread and self.battery_thread.is_alive():
+            self.battery_thread.join(timeout=2)
         logger.info("CLI bridge stopped")
     
     def is_connected(self):
@@ -190,6 +245,11 @@ def undock():
     """Send undock command via bridge"""
     bridge = get_bridge()
     return bridge.undock()
+
+def get_battery_percentage():
+    """Get current battery percentage via bridge"""
+    bridge = get_bridge()
+    return bridge.get_battery_percentage()
 
 def shutdown():
     """Shutdown bridge"""

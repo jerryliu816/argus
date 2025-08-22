@@ -99,24 +99,39 @@ cd ~/argus/create3_ws
 source install/setup.bash
 ros2 launch drive controller.launch.py
 
-# Terminal 2: Start the dashboard (after controller is running)
+# Terminal 2: Start the dashboard (choose one option)
 cd ~/argus/dashboard
-./run.sh
 ```
 
-### Starting the Dashboard
+### Starting the Dashboard (Choose One Option)
+
 ```bash
-# Option 1: Simple startup (after ROS2 controller is running)
-cd ~/argus/dashboard/backend
-python3 main_simple.py
+# Option A: Simplified version (recommended for ROS2 Python issues)
+./test_simple.sh
 
-# Option 2: Using run script
+# Option B: Full version with virtual environment
 ./run.sh
 
-# Option 3: Via systemd service (if configured)
+# Option C: Manual startup
+cd backend && python3 main_simple.py
+
+# Option D: Via systemd service (if configured)
 sudo systemctl start robot-dashboard.service
-sudo systemctl status robot-dashboard.service
 ```
+
+### Dashboard Versions
+
+**main_simple.py** (recommended):
+- Uses CLI bridge to bypass ROS2 Python discovery issues
+- More robust dependency handling and error recovery
+- Better suited for deployment environments
+- Handles import failures gracefully
+
+**main.py** (full version):
+- Direct ROS2 Python bindings via rclpy
+- Requires proper virtual environment setup
+- More direct ROS2 integration but potentially less stable
+- May have ROS2 Python path conflicts
 
 ### Accessing the Interface
 - **Local**: http://localhost:8000
@@ -209,9 +224,10 @@ ros2 launch drive controller.launch.py
 ## Development
 
 ### Adding New Features
-1. Backend: Add endpoints to `main.py`
+1. Backend: Add endpoints to `main_simple.py` (or `main.py` if using full version)
 2. Frontend: Create new JS modules in `js/`
 3. Update `controls.js` to coordinate new functionality
+4. If using CLI bridge, extend `cli_bridge.py` for new ROS2 commands
 
 ### Testing
 ```bash

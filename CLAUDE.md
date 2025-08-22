@@ -115,10 +115,29 @@ cd ~/argus/create3_ws
 source install/setup.bash
 ros2 launch drive controller.launch.py
 
-# Terminal 2: Start dashboard
-cd ~/argus/dashboard/backend
-python3 main_simple.py
+# Terminal 2: Start dashboard (choose one option)
+cd ~/argus/dashboard
+
+# Option A: Simplified version (recommended for ROS2 Python issues)
+./test_simple.sh
+
+# Option B: Full version with virtual environment
+./run.sh
+
+# Option C: Manual startup (alternative)
+cd backend && python3 main_simple.py
 ```
+
+### Dashboard Versions
+**main_simple.py** (recommended):
+- Uses CLI bridge to bypass ROS2 Python discovery issues
+- More robust dependency handling and error recovery
+- Better suited for deployment environments
+
+**main.py** (full version):
+- Direct ROS2 Python bindings
+- Requires proper virtual environment setup
+- More features but potentially less stable
 
 ### Features
 - **Dual input**: Keyboard (desktop) and touch controls (mobile)
@@ -135,9 +154,20 @@ python3 main_simple.py
 - **Camera**: Auto-refresh thumbnails, modal view
 
 ### Technical Implementation
-- **Backend**: FastAPI server with WebSocket (main_simple.py)
+**main_simple.py** (recommended):
+- **Backend**: FastAPI server with WebSocket
 - **ROS2 Bridge**: CLI command bridge (cli_bridge.py) - bypasses Python ROS2 discovery issues
 - **Camera**: Direct DepthAI access (camera_service.py)
+- **Static Files**: Separate CSS/JS/static mounts + PWA manifest support
+
+**main.py** (full version):
+- **Backend**: FastAPI server with direct ROS2 Python bindings
+- **ROS2 Control**: Direct rclpy integration via RobotController class
+- **Dependency**: Requires virtual environment and proper ROS2 Python setup
+
+**Common Features**:
 - **Network**: Binds to 192.168.1.201:8000 for remote access
+- **WebSocket**: Real-time control with <10ms latency
+- **Camera**: Live OAK-D-LITE thumbnails and full-size capture
 
 

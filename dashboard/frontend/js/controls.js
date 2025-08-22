@@ -270,6 +270,9 @@ class RobotControls {
             connected: status.camera_connected || false
         };
         
+        // Update battery status
+        this.batteryPercentage = status.battery_percentage;
+        
         // Update UI
         this.updateStatusDisplay();
         
@@ -302,6 +305,25 @@ class RobotControls {
             } else {
                 cameraStatusElement.textContent = 'Disconnected';
                 cameraStatusElement.className = 'status-value disconnected';
+            }
+        }
+        
+        // Battery status
+        const batteryStatusElement = document.getElementById('battery-status');
+        if (batteryStatusElement) {
+            if (this.batteryPercentage !== null && this.batteryPercentage !== undefined) {
+                batteryStatusElement.textContent = `${this.batteryPercentage}%`;
+                // Set color based on battery level
+                if (this.batteryPercentage > 50) {
+                    batteryStatusElement.className = 'status-value connected'; // Green
+                } else if (this.batteryPercentage > 20) {
+                    batteryStatusElement.className = 'status-value unknown'; // Yellow
+                } else {
+                    batteryStatusElement.className = 'status-value disconnected'; // Red
+                }
+            } else {
+                batteryStatusElement.textContent = 'Unknown';
+                batteryStatusElement.className = 'status-value unknown';
             }
         }
     }
