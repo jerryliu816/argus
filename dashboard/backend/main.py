@@ -257,5 +257,6 @@ if __name__ == "__main__":
         host=host_ip, 
         port=8000, 
         reload=False,  # Disable reload for production
-        log_level="info"
+        log_level="info",
+        access_log=False  # Disable HTTP request logging to reduce noise
     )
