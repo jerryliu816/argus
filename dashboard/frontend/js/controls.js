@@ -57,7 +57,7 @@ class RobotControls {
         if (hasTouch && window.innerWidth <= 768) {
             this.setInputDevice('touch');
         } else if (hasKeyboard) {
-            this.setInputDevice('keyboard');
+            this.setInputDevice('touch'); // Force touch mode since keyboard isn't working
         } else {
             this.setInputDevice('touch'); // Default to touch for mobile
         }
