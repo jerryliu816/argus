@@ -19,9 +19,12 @@ class CameraService:
         self.q_rgb = None
         self.latest_frame = None
         self.frame_lock = threading.Lock()
+        self.device_lock = threading.Lock()
         self._should_stop = False
         self._connected = False
         self._camera_thread = None
+        self._reconnect_attempts = 0
+        self._max_reconnect_attempts = 5
         
         # Initialize camera
         self._initialize_camera()
@@ -62,24 +65,24 @@ class CameraService:
     
     def _camera_worker(self):
         """Camera capture worker thread"""
-        try:
-            # Connect to device and start pipeline
-            with dai.Device(self.pipeline) as device:
-                self.device = device
+        while not self._should_stop:
+            try:
+                # Attempt device connection with retry logic
+                if not self._connect_device():
+                    time.sleep(2.0)  # Wait before retry
+                    continue
                 
-                logger.info(f'Connected cameras: {device.getConnectedCameraFeatures()}')
-                logger.info(f'USB speed: {device.getUsbSpeed().name}')
-                logger.info(f'Device name: {device.getDeviceName()}, Product: {device.getProductName()}')
-                
-                # Output queue - use blocking like rgb_preview.py
-                self.q_rgb = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
-                self._connected = True
                 logger.info("Camera service started successfully")
                 
                 # Continuous capture loop
-                while not self._should_stop:
+                while not self._should_stop and self._connected:
                     try:
-                        inRgb = self.q_rgb.get()  # Get latest frame
+                        if self.q_rgb is None:
+                            logger.warning("Queue not available, reconnecting...")
+                            break
+                            
+                        # Use blocking get like rgb_preview.py for reliability
+                        inRgb = self.q_rgb.get()
                         
                         if inRgb is not None:
                             # Get OpenCV frame
@@ -88,20 +91,30 @@ class CameraService:
                             # Store latest frame (thread-safe)
                             with self.frame_lock:
                                 self.latest_frame = frame.copy()
-                        
-                        # Small delay to prevent excessive CPU usage
-                        time.sleep(0.033)  # ~30 FPS capture rate
+                            
+                            # Reset reconnect attempts on successful frame
+                            self._reconnect_attempts = 0
                         
                     except Exception as e:
-                        logger.error(f"Error in camera capture loop: {e}")
-                        time.sleep(1.0)  # Wait before retry
+                        error_msg = str(e)
+                        if "X_LINK_ERROR" in error_msg or "Communication exception" in error_msg:
+                            logger.error(f"Communication error detected: {e}")
+                            self._disconnect_device()
+                            break  # Exit inner loop to trigger reconnection
+                        else:
+                            logger.error(f"Error in camera capture loop: {e}")
+                            time.sleep(0.1)  # Brief pause for other errors
                         
-        except Exception as e:
-            logger.error(f"Camera worker failed: {e}")
-            self._connected = False
-        finally:
-            self._connected = False
-            logger.info("Camera worker thread stopped")
+            except Exception as e:
+                logger.error(f"Camera worker failed: {e}")
+                self._disconnect_device()
+                
+                # Exponential backoff for reconnection
+                backoff_time = min(2.0 * (2 ** self._reconnect_attempts), 30.0)
+                logger.info(f"Waiting {backoff_time}s before reconnection attempt {self._reconnect_attempts + 1}")
+                time.sleep(backoff_time)
+                
+        logger.info("Camera worker thread stopped")
     
     def is_connected(self) -> bool:
         """Check if camera is connected and capturing"""
@@ -166,15 +179,66 @@ class CameraService:
         # Return copy for analysis (RGB format for OpenAI)
         return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     
+    def _connect_device(self) -> bool:
+        """Connect to DepthAI device with proper error handling"""
+        try:
+            with self.device_lock:
+                if self._reconnect_attempts >= self._max_reconnect_attempts:
+                    logger.error(f"Max reconnection attempts ({self._max_reconnect_attempts}) reached")
+                    return False
+                
+                logger.info(f"Connecting to camera (attempt {self._reconnect_attempts + 1})...")
+                
+                # Create new device connection
+                self.device = dai.Device(self.pipeline)
+                
+                logger.info(f'Connected cameras: {self.device.getConnectedCameraFeatures()}')
+                logger.info(f'USB speed: {self.device.getUsbSpeed().name}')
+                logger.info(f'Device name: {self.device.getDeviceName()}, Product: {self.device.getProductName()}')
+                
+                # Create output queue with blocking behavior like rgb_preview.py
+                self.q_rgb = self.device.getOutputQueue(name="rgb", maxSize=4, blocking=True)
+                self._connected = True
+                self._reconnect_attempts += 1
+                
+                return True
+                
+        except Exception as e:
+            logger.error(f"Failed to connect to camera: {e}")
+            self._disconnect_device()
+            self._reconnect_attempts += 1
+            return False
+    
+    def _disconnect_device(self):
+        """Safely disconnect from DepthAI device"""
+        with self.device_lock:
+            self._connected = False
+            self.q_rgb = None
+            
+            if self.device:
+                try:
+                    self.device.close()
+                except:
+                    pass  # Ignore close errors
+                self.device = None
+                
+            logger.info("Device disconnected")
+    
+    def reset_connection(self):
+        """Manually reset camera connection"""
+        logger.info("Manually resetting camera connection...")
+        self._disconnect_device()
+        self._reconnect_attempts = 0
+    
     def stop(self):
         """Stop camera service"""
         logger.info("Stopping camera service...")
         
         self._should_stop = True
-        self._connected = False
+        self._disconnect_device()
         
         # Wait for camera thread to finish
         if self._camera_thread and self._camera_thread.is_alive():
-            self._camera_thread.join(timeout=3.0)
+            self._camera_thread.join(timeout=5.0)
         
         logger.info("Camera service stopped")

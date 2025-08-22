@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+
+# Virtual environments
+venv/
+env/
+.venv/
+dashboard/venv/
+
+# ROS 2 build outputs
+build/
+install/
+log/
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+*~
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Image/video capture outputs
+*.jpg
+*.jpeg
+*.png
+*.mp4
+*.avi
+rgb.jpg
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Configuration overrides (keep templates)
+config/local_*.yaml
+config/*_local.yaml
+
+# Environment files
+.env
+.env.local
+
+# Robot-specific runtime files
+maps/*.pgm
+maps/*.yaml
