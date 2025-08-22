@@ -4,6 +4,7 @@ import os
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import BatteryState
 from irobot_create_msgs.action import Dock, Undock
@@ -28,21 +29,29 @@ class WebRobotNode(Node):
         self.dock_client = ActionClient(self, Dock, '/dock')
         self.undock_client = ActionClient(self, Undock, '/undock')
         
-        # Battery monitoring
+        # Battery monitoring with compatible QoS
         self.battery_percentage = None
+        battery_qos = QoSProfile(
+            depth=10,
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            durability=DurabilityPolicy.VOLATILE
+        )
         self.battery_subscriber = self.create_subscription(
             BatteryState,
             '/battery_state',
             self._battery_callback,
-            10
+            battery_qos
         )
+        logger.info("Battery subscriber created with BEST_EFFORT QoS")
         
     def _battery_callback(self, msg):
         """Callback for battery state messages"""
         if not math.isnan(msg.percentage):  # Check for NaN
             # Convert from 0-1 range to 0-100 percentage
             self.battery_percentage = int(msg.percentage * 100)
-            logger.debug(f"Battery percentage updated: {self.battery_percentage}%")
+            logger.info(f"Battery percentage updated: {self.battery_percentage}%")
+        else:
+            logger.warning("Received NaN battery percentage")
     
     def get_battery_percentage(self):
         """Get current battery percentage"""
