@@ -23,7 +23,12 @@ class RobotControls {
     initialize() {
         // Initialize all controllers
         this.websocket = new WebSocketController();
-        this.keyboard = { stopMovement: () => {}, isActive: () => false }; // Dummy keyboard
+        this.keyboard = { 
+            stopMovement: () => {}, 
+            isActive: () => false,
+            showHelp: () => {},
+            hideHelp: () => {}
+        }; // Dummy keyboard object
         this.touch = new TouchController();
         this.camera = new CameraController();
         
