@@ -49,7 +49,8 @@ class KeyboardController {
         this.currentMovement = [0, 0, 0, 0];
         this.isMoving = false;
         this.keysPressed = new Set();
-        this.movementTimer = null;
+        this.activeMovementKey = null;
+        this.animationFrame = null;
         
         // Help visibility
         this.helpVisible = false;
@@ -83,17 +84,9 @@ class KeyboardController {
         else if (key === '<') key = '<'; // Shift + comma
         else if (key === '>') key = '>'; // Shift + period
         
-        // For movement keys, allow repeats to continue movement
-        // For other keys, prevent repeats
-        if (this.keysPressed.has(key)) {
-            if (key in this.moveBindings) {
-                // Movement key repeat - just send command again
-                this.sendMovementCommand();
-                return;
-            } else {
-                // Non-movement key repeat - ignore
-                return;
-            }
+        // Prevent key repeats for non-movement keys
+        if (this.keysPressed.has(key) && !(key in this.moveBindings)) {
+            return;
         }
         
         this.keysPressed.add(key);
@@ -124,13 +117,9 @@ class KeyboardController {
         
         this.keysPressed.delete(key);
         
-        // Only stop movement if no movement keys are pressed
-        if (key in this.moveBindings) {
-            // Check if any movement keys are still pressed
-            const stillPressed = Array.from(this.keysPressed).some(k => k in this.moveBindings);
-            if (!stillPressed) {
-                this.stopMovement();
-            }
+        // Stop movement when releasing movement keys
+        if (key in this.moveBindings && key === this.activeMovementKey) {
+            this.stopMovement();
         }
     }
 
@@ -138,12 +127,31 @@ class KeyboardController {
         const movement = this.moveBindings[key];
         this.currentMovement = [...movement];
         this.isMoving = true;
+        this.activeMovementKey = key;
         
         // Send movement command
         this.sendMovementCommand();
         
+        // Start continuous movement loop
+        this.startContinuousMovement();
+        
         // Update UI
         this.updateMovementDisplay(key);
+    }
+
+    startContinuousMovement() {
+        if (this.animationFrame) {
+            cancelAnimationFrame(this.animationFrame);
+        }
+        
+        const moveLoop = () => {
+            if (this.isMoving && this.activeMovementKey) {
+                this.sendMovementCommand();
+                this.animationFrame = requestAnimationFrame(moveLoop);
+            }
+        };
+        
+        this.animationFrame = requestAnimationFrame(moveLoop);
     }
 
     handleSpeedKey(key) {
@@ -175,6 +183,13 @@ class KeyboardController {
     stopMovement() {
         this.currentMovement = [0, 0, 0, 0];
         this.isMoving = false;
+        this.activeMovementKey = null;
+        
+        // Stop animation loop
+        if (this.animationFrame) {
+            cancelAnimationFrame(this.animationFrame);
+            this.animationFrame = null;
+        }
         
         // Send stop command
         this.sendMovementCommand();
