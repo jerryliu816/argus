@@ -41,8 +41,8 @@ class CameraService:
             
             xoutRgb.setStreamName("rgb")
             
-            # Properties - higher resolution for web dashboard
-            camRgb.setPreviewSize(640, 480)  # Larger than rgb_preview.py
+            # Properties - match working rgb_preview.py settings
+            camRgb.setPreviewSize(300, 300)  # Same as rgb_preview.py
             camRgb.setInterleaved(False)
             camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
             
@@ -71,7 +71,7 @@ class CameraService:
                 logger.info(f'USB speed: {device.getUsbSpeed().name}')
                 logger.info(f'Device name: {device.getDeviceName()}, Product: {device.getProductName()}')
                 
-                # Output queue
+                # Output queue - use blocking like rgb_preview.py
                 self.q_rgb = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
                 self._connected = True
                 logger.info("Camera service started successfully")
