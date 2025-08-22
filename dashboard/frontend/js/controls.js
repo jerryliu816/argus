@@ -53,14 +53,8 @@ class RobotControls {
         // Check for keyboard
         const hasKeyboard = !('ontouchstart' in window) || window.innerWidth > 768;
         
-        // Initial guess
-        if (hasTouch && window.innerWidth <= 768) {
-            this.setInputDevice('touch');
-        } else if (hasKeyboard) {
-            this.setInputDevice('touch'); // Force touch mode since keyboard isn't working
-        } else {
-            this.setInputDevice('touch'); // Default to touch for mobile
-        }
+        // Force touch mode since keyboard isn't working
+        this.setInputDevice('touch');
         
         // Dynamic detection based on usage
         this.setupInputDetection();
@@ -103,16 +97,10 @@ class RobotControls {
         const keyboardControls = document.getElementById('keyboard-controls');
         const touchControls = document.getElementById('touch-controls');
         
-        if (device === 'keyboard') {
-            if (deviceIndicator) deviceIndicator.textContent = '⌨️ Keyboard Mode';
-            if (keyboardControls) keyboardControls.classList.remove('hidden');
-            if (touchControls) touchControls.classList.add('hidden');
-            
-        } else if (device === 'touch') {
-            if (deviceIndicator) deviceIndicator.textContent = '📱 Touch Mode';
-            if (keyboardControls) keyboardControls.classList.add('hidden');
-            if (touchControls) touchControls.classList.remove('hidden');
-        }
+        // Force touch mode only
+        if (deviceIndicator) deviceIndicator.textContent = '📱 Touch Mode';
+        if (keyboardControls) keyboardControls.classList.add('hidden');
+        if (touchControls) touchControls.classList.remove('hidden');
         
         console.log(`Input device set to: ${device}`);
     }
