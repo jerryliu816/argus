@@ -2,7 +2,10 @@
 
 import sys
 import os
-sys.path.append('/home/jerry/dev/argus/dashboard/backend')
+
+# Add backend directory to path
+backend_path = os.path.join(os.path.dirname(__file__), 'backend')
+sys.path.insert(0, backend_path)
 
 import cli_bridge
 
