@@ -185,6 +185,12 @@ class TouchController {
     }
 
     sendMovement() {
+        console.log('Touch sendMovement:', {
+            linearX: this.linearX,
+            linearY: this.linearY,
+            angularZ: this.angularZ
+        });
+        
         if (window.robotControls) {
             window.robotControls.sendMovement(
                 this.linearX,
@@ -194,6 +200,8 @@ class TouchController {
                 0, // angular.y
                 this.angularZ
             );
+        } else {
+            console.error('window.robotControls not available');
         }
     }
 
