@@ -153,9 +153,13 @@ class KeyboardController {
             clearInterval(this.repeatInterval);
         }
         
+        console.log('Starting key repeat interval');
+        
         // Start repeating every 100ms while key is held
         this.repeatInterval = setInterval(() => {
+            console.log('Interval tick - isMoving:', this.isMoving, 'activeKey:', this.activeMovementKey);
             if (this.isMoving && this.activeMovementKey) {
+                console.log('Sending repeat movement command');
                 this.sendMovementCommand();
             }
         }, 100);
