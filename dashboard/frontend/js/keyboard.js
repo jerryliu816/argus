@@ -77,6 +77,7 @@ class KeyboardController {
         event.preventDefault();
         
         let key = event.key;
+        console.log('KeyDown:', key, 'Already pressed:', this.keysPressed.has(key));
         
         // Handle special keys
         if (key === ',') key = ',';
@@ -86,13 +87,16 @@ class KeyboardController {
         
         // Prevent all key repeats - we'll handle movement repeats manually
         if (this.keysPressed.has(key)) {
+            console.log('Key repeat ignored:', key);
             return;
         }
         
         this.keysPressed.add(key);
+        console.log('Keys pressed:', Array.from(this.keysPressed));
         
         // Handle different key types
         if (key in this.moveBindings) {
+            console.log('Movement key detected:', key);
             this.handleMovementKey(key);
         } else if (key in this.speedBindings) {
             this.handleSpeedKey(key);
@@ -102,12 +106,14 @@ class KeyboardController {
             this.toggleHelp();
         } else {
             // Any other key stops movement
+            console.log('Stopping movement for key:', key);
             this.stopMovement();
         }
     }
 
     handleKeyUp(event) {
         let key = event.key;
+        console.log('KeyUp:', key);
         
         // Handle special keys
         if (key === ',') key = ',';
@@ -116,9 +122,11 @@ class KeyboardController {
         else if (key === '>') key = '>';
         
         this.keysPressed.delete(key);
+        console.log('Keys after release:', Array.from(this.keysPressed));
         
         // Stop movement when releasing movement keys
         if (key in this.moveBindings && key === this.activeMovementKey) {
+            console.log('Stopping movement for released key:', key);
             this.stopMovement();
         }
     }
