@@ -274,6 +274,10 @@ class RobotControls {
         this.batteryPercentage = status.battery_percentage;
         this.batteryCharging = status.battery_charging;
         
+        // Update dock status
+        this.isDocked = status.is_docked;
+        this.dockVisible = status.dock_visible;
+        
         // Update UI
         this.updateStatusDisplay();
         
@@ -334,6 +338,37 @@ class RobotControls {
             } else {
                 batteryStatusElement.textContent = 'Unknown';
                 batteryStatusElement.className = 'status-value unknown';
+            }
+        }
+        
+        // Dock status
+        const dockStatusElement = document.getElementById('dock-status');
+        if (dockStatusElement) {
+            if (this.isDocked !== null && this.isDocked !== undefined) {
+                let dockText = '';
+                let dockIndicator = '';
+                
+                if (this.isDocked === true) {
+                    dockText = 'Docked';
+                    dockIndicator = ' 🏠'; // House for docked
+                    dockStatusElement.className = 'status-value connected'; // Green
+                } else {
+                    dockText = 'Undocked';
+                    dockIndicator = ' 🚀'; // Rocket for mobile/undocked
+                    dockStatusElement.className = 'status-value unknown'; // Yellow
+                }
+                
+                // Add dock visibility indicator if relevant
+                if (this.dockVisible === true && this.isDocked === false) {
+                    dockIndicator += ' 👁️'; // Eye for dock visible
+                } else if (this.dockVisible === false && this.isDocked === false) {
+                    dockIndicator += ' 🔍'; // Search for dock not visible
+                }
+                
+                dockStatusElement.textContent = `${dockText}${dockIndicator}`;
+            } else {
+                dockStatusElement.textContent = 'Unknown';
+                dockStatusElement.className = 'status-value unknown';
             }
         }
     }

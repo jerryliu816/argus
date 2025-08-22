@@ -8,6 +8,7 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import BatteryState
 from irobot_create_msgs.action import Dock, Undock
+from irobot_create_msgs.msg import DockStatus
 import threading
 import time
 import logging
@@ -32,6 +33,10 @@ class WebRobotNode(Node):
         # Battery monitoring with compatible QoS
         self.battery_percentage = None
         self.battery_charging = None
+        
+        # Dock status monitoring
+        self.is_docked = None
+        self.dock_visible = None
         battery_qos = QoSProfile(
             depth=10,
             reliability=ReliabilityPolicy.BEST_EFFORT,
@@ -44,6 +49,15 @@ class WebRobotNode(Node):
             battery_qos
         )
         logger.info("Battery subscriber created with BEST_EFFORT QoS")
+        
+        # Create dock status subscriber with same QoS
+        self.dock_subscriber = self.create_subscription(
+            DockStatus,
+            '/dock_status',
+            self._dock_callback,
+            battery_qos
+        )
+        logger.info("Dock status subscriber created with BEST_EFFORT QoS")
         
     def _battery_callback(self, msg):
         """Callback for battery state messages"""
@@ -71,6 +85,15 @@ class WebRobotNode(Node):
         else:
             logger.warning("Received NaN battery percentage")
     
+    def _dock_callback(self, msg):
+        """Callback for dock status messages"""
+        self.is_docked = msg.is_docked
+        self.dock_visible = msg.dock_visible
+        
+        dock_status = "docked" if self.is_docked else "undocked"
+        visibility_status = "visible" if self.dock_visible else "not visible"
+        logger.info(f"Dock status updated: {dock_status}, dock {visibility_status}")
+    
     def get_battery_percentage(self):
         """Get current battery percentage"""
         return self.battery_percentage
@@ -78,6 +101,14 @@ class WebRobotNode(Node):
     def get_battery_charging(self):
         """Get current battery charging status"""
         return self.battery_charging
+    
+    def get_is_docked(self):
+        """Get current dock status"""
+        return self.is_docked
+    
+    def get_dock_visible(self):
+        """Get dock visibility status"""
+        return self.dock_visible
 
 class RobotController:
     """ROS2 interface for robot control - minimal and focused"""
@@ -263,6 +294,20 @@ class RobotController:
             return None
         
         return self._node.get_battery_charging()
+    
+    def get_is_docked(self) -> bool:
+        """Get current dock status"""
+        if not self.is_connected() or not self._node:
+            return None
+        
+        return self._node.get_is_docked()
+    
+    def get_dock_visible(self) -> bool:
+        """Get dock visibility status"""
+        if not self.is_connected() or not self._node:
+            return None
+        
+        return self._node.get_dock_visible()
     
     def stop(self):
         """Stop the robot controller"""

@@ -204,9 +204,13 @@ async def get_status():
     """Get system status"""
     battery_percentage = None
     battery_charging = None
+    is_docked = None
+    dock_visible = None
     if robot_controller and robot_controller.is_connected():
         battery_percentage = robot_controller.get_battery_percentage()
         battery_charging = robot_controller.get_battery_charging()
+        is_docked = robot_controller.get_is_docked()
+        dock_visible = robot_controller.get_dock_visible()
     
     return {
         "robot_connected": robot_controller is not None and robot_controller.is_connected(),
@@ -215,7 +219,9 @@ async def get_status():
         "current_speed": speed_settings,
         "current_twist": current_twist,
         "battery_percentage": battery_percentage,
-        "battery_charging": battery_charging
+        "battery_charging": battery_charging,
+        "is_docked": is_docked,
+        "dock_visible": dock_visible
     }
 
 # Serve static files (frontend)
