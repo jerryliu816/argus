@@ -49,6 +49,7 @@ class KeyboardController {
         this.currentMovement = [0, 0, 0, 0];
         this.isMoving = false;
         this.keysPressed = new Set();
+        this.movementTimer = null;
         
         // Help visibility
         this.helpVisible = false;
@@ -82,9 +83,17 @@ class KeyboardController {
         else if (key === '<') key = '<'; // Shift + comma
         else if (key === '>') key = '>'; // Shift + period
         
-        // Allow movement key repeats for continuous movement
-        if (this.keysPressed.has(key) && !(key in this.moveBindings)) {
-            return;
+        // For movement keys, allow repeats to continue movement
+        // For other keys, prevent repeats
+        if (this.keysPressed.has(key)) {
+            if (key in this.moveBindings) {
+                // Movement key repeat - just send command again
+                this.sendMovementCommand();
+                return;
+            } else {
+                // Non-movement key repeat - ignore
+                return;
+            }
         }
         
         this.keysPressed.add(key);
