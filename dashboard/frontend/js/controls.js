@@ -98,9 +98,16 @@ class RobotControls {
         const touchControls = document.getElementById('touch-controls');
         
         // Force touch mode only
+        console.log('Setting touch mode - touchControls element:', touchControls);
         if (deviceIndicator) deviceIndicator.textContent = '📱 Touch Mode';
-        if (keyboardControls) keyboardControls.classList.add('hidden');
-        if (touchControls) touchControls.classList.remove('hidden');
+        if (keyboardControls) {
+            keyboardControls.classList.add('hidden');
+            console.log('Keyboard controls hidden');
+        }
+        if (touchControls) {
+            touchControls.classList.remove('hidden');
+            console.log('Touch controls shown, classes:', touchControls.className);
+        }
         
         console.log(`Input device set to: ${device}`);
     }
