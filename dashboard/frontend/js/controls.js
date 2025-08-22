@@ -21,6 +21,7 @@ class RobotControls {
     }
 
     initialize() {
+        console.log('RobotControls initialize() - FIXED VERSION');
         // Initialize all controllers
         this.websocket = new WebSocketController();
         this.keyboard = { 
