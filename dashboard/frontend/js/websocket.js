@@ -124,7 +124,7 @@ class WebSocketController {
 
     handleAck(message) {
         // Command acknowledged
-        console.log('Command acknowledged:', message.command);
+        // console.log('Command acknowledged:', message.command);
     }
 
     handlePong(message) {
