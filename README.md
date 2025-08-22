@@ -93,9 +93,9 @@ cd ~/argus/create3_ws
 source install/setup.bash
 ros2 launch drive controller.launch.py
 
-# Terminal 2 - Start web dashboard
-cd ~/argus/dashboard/backend
-python3 main_simple.py
+# Terminal 2 - Start web dashboard (RECOMMENDED)
+cd ~/argus/dashboard
+./test_dashboard.sh
 
 # Access dashboard at: http://192.168.1.201:8000
 # Mobile: Add to home screen for app-like experience
@@ -142,14 +142,17 @@ argus/
 │       └── config/            # Parameter files
 ├── dashboard/                 # Web control interface
 │   ├── backend/               # FastAPI server + ROS2 bridge
-│   │   ├── main_simple.py    # Main server (CLI bridge)
-│   │   ├── cli_bridge.py     # ROS2 command bridge
+│   │   ├── main.py           # Main server (direct ROS2) - RECOMMENDED
+│   │   ├── main_simple.py    # CLI bridge server - NOT RECOMMENDED
+│   │   ├── ros_control.py    # Direct ROS2 control (works)
+│   │   ├── cli_bridge.py     # CLI command bridge (doesn't work)
 │   │   └── camera_service.py # OAK-D camera access
 │   ├── frontend/              # Static web interface
 │   │   ├── index.html        # Main dashboard page
 │   │   ├── css/main.css      # Responsive styling
 │   │   └── js/               # Control modules
-│   └── install_simple.sh     # Dashboard setup
+│   ├── test_dashboard.sh     # Dashboard startup (RECOMMENDED)
+│   └── test_simple.sh        # CLI bridge startup (NOT RECOMMENDED)
 ├── scripts/                   # Standalone utilities
 │   ├── map2img.py            # SLAM map capture
 │   └── capture_image.py      # Camera utilities

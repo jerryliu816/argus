@@ -5,11 +5,13 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
 from geometry_msgs.msg import Twist
+from sensor_msgs.msg import BatteryState
 from irobot_create_msgs.action import Dock, Undock
 import threading
 import time
 import logging
 import queue
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +27,26 @@ class WebRobotNode(Node):
         # Create action clients for dock/undock
         self.dock_client = ActionClient(self, Dock, '/dock')
         self.undock_client = ActionClient(self, Undock, '/undock')
+        
+        # Battery monitoring
+        self.battery_percentage = None
+        self.battery_subscriber = self.create_subscription(
+            BatteryState,
+            '/battery_state',
+            self._battery_callback,
+            10
+        )
+        
+    def _battery_callback(self, msg):
+        """Callback for battery state messages"""
+        if not math.isnan(msg.percentage):  # Check for NaN
+            # Convert from 0-1 range to 0-100 percentage
+            self.battery_percentage = int(msg.percentage * 100)
+            logger.debug(f"Battery percentage updated: {self.battery_percentage}%")
+    
+    def get_battery_percentage(self):
+        """Get current battery percentage"""
+        return self.battery_percentage
 
 class RobotController:
     """ROS2 interface for robot control - minimal and focused"""
@@ -196,6 +218,13 @@ class RobotController:
         except Exception as e:
             logger.error(f"Failed to queue undock command: {e}")
             return False
+    
+    def get_battery_percentage(self) -> int:
+        """Get current battery percentage"""
+        if not self.is_connected() or not self._node:
+            return None
+        
+        return self._node.get_battery_percentage()
     
     def stop(self):
         """Stop the robot controller"""

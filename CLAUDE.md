@@ -118,26 +118,28 @@ ros2 launch drive controller.launch.py
 # Terminal 2: Start dashboard (choose one option)
 cd ~/argus/dashboard
 
-# Option A: Simplified version (recommended for ROS2 Python issues)
-./test_simple.sh
+# Option A: Direct ROS2 version (RECOMMENDED - works for robot driving)
+./test_dashboard.sh
 
-# Option B: Full version with virtual environment
+# Option B: Full version with virtual environment (alternative)
 ./run.sh
 
-# Option C: Manual startup (alternative)
-cd backend && python3 main_simple.py
+# Option C: CLI bridge version (NOT RECOMMENDED - driving doesn't work)
+./test_simple.sh
 ```
 
 ### Dashboard Versions
-**main_simple.py** (recommended):
-- Uses CLI bridge to bypass ROS2 Python discovery issues
-- More robust dependency handling and error recovery
-- Better suited for deployment environments
+**main.py** (RECOMMENDED - used by test_dashboard.sh):
+- Direct ROS2 Python bindings via rclpy
+- Works properly for robot driving with continuous twist messages
+- Uses dedicated ROS2 thread with persistent publisher
+- Requires proper ROS2 environment setup
 
-**main.py** (full version):
-- Direct ROS2 Python bindings
-- Requires proper virtual environment setup
-- More features but potentially less stable
+**main_simple.py** (NOT RECOMMENDED - used by test_simple.sh):
+- Uses CLI bridge with subprocess calls to ros2 commands
+- Robot driving doesn't work - only sends single twist messages
+- Created as workaround for ROS2 Python issues but is less functional
+- Misleading name - actually more complex than direct approach
 
 ### Features
 - **Dual input**: Keyboard (desktop) and touch controls (mobile)
@@ -154,16 +156,18 @@ cd backend && python3 main_simple.py
 - **Camera**: Auto-refresh thumbnails, modal view
 
 ### Technical Implementation
-**main_simple.py** (recommended):
+**main.py** (RECOMMENDED):
 - **Backend**: FastAPI server with WebSocket
-- **ROS2 Bridge**: CLI command bridge (cli_bridge.py) - bypasses Python ROS2 discovery issues
-- **Camera**: Direct DepthAI access (camera_service.py)
-- **Static Files**: Separate CSS/JS/static mounts + PWA manifest support
-
-**main.py** (full version):
-- **Backend**: FastAPI server with direct ROS2 Python bindings
 - **ROS2 Control**: Direct rclpy integration via RobotController class
-- **Dependency**: Requires virtual environment and proper ROS2 Python setup
+- **Robot Movement**: Continuous twist publishing at proper frequency for driving
+- **Threading**: Dedicated ROS2 worker thread with command queue
+
+**main_simple.py** (NOT RECOMMENDED):
+- **Backend**: FastAPI server with WebSocket  
+- **ROS2 Bridge**: CLI command bridge (cli_bridge.py) using subprocess calls
+- **Robot Movement**: Single-shot twist messages that don't work for driving
+- **Camera**: Direct DepthAI access (camera_service.py)
+- **Static Files**: Enhanced static file handling and PWA manifest support
 
 **Common Features**:
 - **Network**: Binds to 192.168.1.201:8000 for remote access
