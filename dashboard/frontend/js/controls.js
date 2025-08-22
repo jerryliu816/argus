@@ -350,19 +350,17 @@ class RobotControls {
                 
                 if (this.isDocked === true) {
                     dockText = 'Docked';
-                    dockIndicator = ' 🏠'; // House for docked
+                    dockIndicator = ' 🟢'; // Green circle for docked
                     dockStatusElement.className = 'status-value connected'; // Green
                 } else {
                     dockText = 'Undocked';
-                    dockIndicator = ' 🚀'; // Rocket for mobile/undocked
-                    dockStatusElement.className = 'status-value unknown'; // Yellow
-                }
-                
-                // Add dock visibility indicator if relevant
-                if (this.dockVisible === true && this.isDocked === false) {
-                    dockIndicator += ' 👁️'; // Eye for dock visible
-                } else if (this.dockVisible === false && this.isDocked === false) {
-                    dockIndicator += ' 🔍'; // Search for dock not visible
+                    if (this.dockVisible === true) {
+                        dockIndicator = ' 🟡'; // Yellow circle for undocked but dock visible
+                        dockStatusElement.className = 'status-value unknown'; // Yellow
+                    } else {
+                        dockIndicator = ' 🔴'; // Red circle for undocked and dock not visible
+                        dockStatusElement.className = 'status-value disconnected'; // Red
+                    }
                 }
                 
                 dockStatusElement.textContent = `${dockText}${dockIndicator}`;

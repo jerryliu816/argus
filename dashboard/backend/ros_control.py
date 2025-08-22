@@ -63,6 +63,9 @@ class WebRobotNode(Node):
         """Callback for battery state messages"""
         if not math.isnan(msg.percentage):  # Check for NaN
             # Convert from 0-1 range to 0-100 percentage
+            old_percentage = self.battery_percentage
+            old_charging = self.battery_charging
+            
             self.battery_percentage = int(msg.percentage * 100)
             
             # Determine charging status from current
@@ -80,19 +83,27 @@ class WebRobotNode(Node):
             else:
                 self.battery_charging = None
                 status_text = "unknown"
-                
-            logger.info(f"Battery updated: {self.battery_percentage}% ({status_text}, current: {msg.current:.3f}A)")
+            
+            # Only log significant changes (percentage change or charging status change)
+            if (old_percentage != self.battery_percentage or old_charging != self.battery_charging):
+                logger.info(f"Battery updated: {self.battery_percentage}% ({status_text}, current: {msg.current:.3f}A)")
         else:
             logger.warning("Received NaN battery percentage")
     
     def _dock_callback(self, msg):
         """Callback for dock status messages"""
+        # Only log when status changes to reduce spam
+        old_docked = self.is_docked
+        old_visible = self.dock_visible
+        
         self.is_docked = msg.is_docked
         self.dock_visible = msg.dock_visible
         
-        dock_status = "docked" if self.is_docked else "undocked"
-        visibility_status = "visible" if self.dock_visible else "not visible"
-        logger.info(f"Dock status updated: {dock_status}, dock {visibility_status}")
+        # Only log if status changed
+        if old_docked != self.is_docked or old_visible != self.dock_visible:
+            dock_status = "docked" if self.is_docked else "undocked"
+            visibility_status = "visible" if self.dock_visible else "not visible"
+            logger.info(f"Dock status changed: {dock_status}, dock {visibility_status}")
     
     def get_battery_percentage(self):
         """Get current battery percentage"""
