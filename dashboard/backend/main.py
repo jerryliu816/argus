@@ -203,8 +203,10 @@ async def get_camera_full():
 async def get_status():
     """Get system status"""
     battery_percentage = None
+    battery_charging = None
     if robot_controller and robot_controller.is_connected():
         battery_percentage = robot_controller.get_battery_percentage()
+        battery_charging = robot_controller.get_battery_charging()
     
     return {
         "robot_connected": robot_controller is not None and robot_controller.is_connected(),
@@ -212,7 +214,8 @@ async def get_status():
         "active_connections": len(active_connections),
         "current_speed": speed_settings,
         "current_twist": current_twist,
-        "battery_percentage": battery_percentage
+        "battery_percentage": battery_percentage,
+        "battery_charging": battery_charging
     }
 
 # Serve static files (frontend)

@@ -31,6 +31,7 @@ class WebRobotNode(Node):
         
         # Battery monitoring with compatible QoS
         self.battery_percentage = None
+        self.battery_charging = None
         battery_qos = QoSProfile(
             depth=10,
             reliability=ReliabilityPolicy.BEST_EFFORT,
@@ -49,13 +50,34 @@ class WebRobotNode(Node):
         if not math.isnan(msg.percentage):  # Check for NaN
             # Convert from 0-1 range to 0-100 percentage
             self.battery_percentage = int(msg.percentage * 100)
-            logger.info(f"Battery percentage updated: {self.battery_percentage}%")
+            
+            # Determine charging status from current
+            # Positive current = charging, negative current = discharging
+            if not math.isnan(msg.current):
+                if msg.current > 0.01:  # Small threshold to avoid noise
+                    self.battery_charging = True
+                    status_text = "charging"
+                elif msg.current < -0.01:
+                    self.battery_charging = False
+                    status_text = "discharging"
+                else:
+                    self.battery_charging = None
+                    status_text = "idle"
+            else:
+                self.battery_charging = None
+                status_text = "unknown"
+                
+            logger.info(f"Battery updated: {self.battery_percentage}% ({status_text}, current: {msg.current:.3f}A)")
         else:
             logger.warning("Received NaN battery percentage")
     
     def get_battery_percentage(self):
         """Get current battery percentage"""
         return self.battery_percentage
+    
+    def get_battery_charging(self):
+        """Get current battery charging status"""
+        return self.battery_charging
 
 class RobotController:
     """ROS2 interface for robot control - minimal and focused"""
@@ -234,6 +256,13 @@ class RobotController:
             return None
         
         return self._node.get_battery_percentage()
+    
+    def get_battery_charging(self) -> bool:
+        """Get current battery charging status"""
+        if not self.is_connected() or not self._node:
+            return None
+        
+        return self._node.get_battery_charging()
     
     def stop(self):
         """Stop the robot controller"""
