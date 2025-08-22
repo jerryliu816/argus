@@ -3,7 +3,6 @@
 class RobotControls {
     constructor() {
         this.websocket = null;
-        this.keyboard = null;
         this.touch = null;
         this.camera = null;
         
@@ -23,14 +22,12 @@ class RobotControls {
     initialize() {
         // Initialize all controllers
         this.websocket = new WebSocketController();
-        this.keyboard = new KeyboardController();
         this.touch = new TouchController();
         this.camera = new CameraController();
         
         // Make available globally
         window.robotControls = this;
         window.websocketController = this.websocket;
-        window.keyboardController = this.keyboard;
         window.touchController = this.touch;
         window.cameraController = this.camera;
         
@@ -47,42 +44,12 @@ class RobotControls {
     }
 
     detectInputDevice() {
-        // Check for touch capability
-        const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        
-        // Check for keyboard
-        const hasKeyboard = !('ontouchstart' in window) || window.innerWidth > 768;
-        
-        // Force touch mode since keyboard isn't working
+        // Always use touch mode only
         this.setInputDevice('touch');
-        
-        // Dynamic detection based on usage
-        this.setupInputDetection();
     }
 
     setupInputDetection() {
-        // Detect keyboard usage - DISABLED since keyboard isn't working
-        // document.addEventListener('keydown', () => {
-        //     if (this.inputDevice !== 'keyboard') {
-        //         this.setInputDevice('keyboard');
-        //     }
-        //     this.lastInputTime = Date.now();
-        // });
-        
-        // Detect touch usage
-        document.addEventListener('touchstart', () => {
-            if (this.inputDevice !== 'touch') {
-                this.setInputDevice('touch');
-            }
-            this.lastInputTime = Date.now();
-        });
-        
-        // Auto-switch based on inactivity
-        setInterval(() => {
-            if (Date.now() - this.lastInputTime > 10000) { // 10 seconds of inactivity
-                this.detectInputDevice();
-            }
-        }, 5000);
+        // No input detection - always stay in touch mode
     }
 
     setInputDevice(device) {
@@ -94,16 +61,11 @@ class RobotControls {
         this.inputDevice = device;
         
         const deviceIndicator = document.getElementById('device-type');
-        const keyboardControls = document.getElementById('keyboard-controls');
         const touchControls = document.getElementById('touch-controls');
         
         // Force touch mode only
         console.log('Setting touch mode - touchControls element:', touchControls);
         if (deviceIndicator) deviceIndicator.textContent = '📱 Touch Mode';
-        if (keyboardControls) {
-            keyboardControls.classList.add('hidden');
-            console.log('Keyboard controls hidden');
-        }
         if (touchControls) {
             touchControls.classList.remove('hidden');
             console.log('Touch controls shown, classes:', touchControls.className);
@@ -243,9 +205,6 @@ class RobotControls {
             this.touch.emergencyStop();
         }
         
-        if (this.keyboard) {
-            this.keyboard.stopMovement();
-        }
         
         // Update UI
         const movementDisplay = document.getElementById('current-movement');
@@ -378,7 +337,6 @@ class RobotControls {
             currentTwist: this.currentTwist,
             inputDevice: this.inputDevice,
             controllers: {
-                keyboard: this.keyboard.isActive(),
                 touch: this.touch.isActive()
             }
         };
