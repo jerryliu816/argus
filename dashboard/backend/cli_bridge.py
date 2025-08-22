@@ -103,6 +103,37 @@ class CLIBridge:
         """Get current battery percentage"""
         return self.battery_percentage
     
+    def _monitor_battery_once(self):
+        """Check battery status once (for debugging)"""
+        try:
+            result = subprocess.run(
+                ['ros2', 'topic', 'echo', '/battery_state', '--once'],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                env=self._get_ros_env()
+            )
+            
+            if result.returncode == 0 and result.stdout:
+                lines = result.stdout.split('\n')
+                for line in lines:
+                    if line.strip().startswith('percentage:'):
+                        try:
+                            percentage_str = line.split(':')[1].strip()
+                            percentage = float(percentage_str)
+                            self.battery_percentage = int(percentage * 100)
+                            logger.info(f"Manual battery check: {self.battery_percentage}%")
+                            return self.battery_percentage
+                        except (ValueError, IndexError) as e:
+                            logger.warning(f"Failed to parse battery percentage: {e}")
+            else:
+                logger.warning("Manual battery check failed")
+                
+        except Exception as e:
+            logger.error(f"Manual battery check error: {e}")
+        
+        return None
+    
     def publish_twist(self, linear_x, linear_y, linear_z, angular_x, angular_y, angular_z):
         """Publish twist using ros2 topic pub command"""
         if not self.is_running:
