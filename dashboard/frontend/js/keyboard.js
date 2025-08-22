@@ -63,11 +63,25 @@ class KeyboardController {
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
         document.addEventListener('keyup', this.handleKeyUp.bind(this));
         
+        // Test if keyboard events work at all
+        document.addEventListener('keydown', (e) => {
+            console.log('RAW keydown event:', e.key);
+        });
+        
         // Prevent context menu on right-click
         document.addEventListener('contextmenu', (e) => e.preventDefault());
         
         // Focus on window to ensure keyboard events work
         window.focus();
+        document.body.focus();
+        
+        // Make page focusable
+        document.body.tabIndex = -1;
+        
+        // Force focus when user clicks anywhere
+        document.addEventListener('click', () => {
+            document.body.focus();
+        });
         
         console.log('Keyboard controller initialized');
     }
