@@ -3,6 +3,7 @@
 class RobotControls {
     constructor() {
         this.websocket = null;
+        this.keyboard = null;
         this.touch = null;
         this.camera = null;
         
@@ -22,12 +23,14 @@ class RobotControls {
     initialize() {
         // Initialize all controllers
         this.websocket = new WebSocketController();
+        this.keyboard = { stopMovement: () => {}, isActive: () => false }; // Dummy keyboard
         this.touch = new TouchController();
         this.camera = new CameraController();
         
         // Make available globally
         window.robotControls = this;
         window.websocketController = this.websocket;
+        window.keyboardController = this.keyboard;
         window.touchController = this.touch;
         window.cameraController = this.camera;
         
@@ -337,6 +340,7 @@ class RobotControls {
             currentTwist: this.currentTwist,
             inputDevice: this.inputDevice,
             controllers: {
+                keyboard: this.keyboard.isActive(),
                 touch: this.touch.isActive()
             }
         };

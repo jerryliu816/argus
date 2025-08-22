@@ -27,6 +27,11 @@ class TouchController {
         this.joystick = document.getElementById('joystick');
         this.joystickKnob = document.getElementById('joystick-knob');
         
+        console.log('Joystick elements:', { 
+            joystick: this.joystick, 
+            knob: this.joystickKnob 
+        });
+        
         if (!this.joystick || !this.joystickKnob) {
             console.error('Joystick elements not found');
             return;
@@ -35,7 +40,7 @@ class TouchController {
         this.setupJoystick();
         this.bindEvents();
         
-        console.log('Touch controller initialized');
+        console.log('Touch controller initialized successfully');
     }
 
     setupJoystick() {
