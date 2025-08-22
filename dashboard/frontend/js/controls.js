@@ -272,6 +272,7 @@ class RobotControls {
         
         // Update battery status
         this.batteryPercentage = status.battery_percentage;
+        this.batteryCharging = status.battery_charging;
         
         // Update UI
         this.updateStatusDisplay();
@@ -312,7 +313,16 @@ class RobotControls {
         const batteryStatusElement = document.getElementById('battery-status');
         if (batteryStatusElement) {
             if (this.batteryPercentage !== null && this.batteryPercentage !== undefined) {
-                batteryStatusElement.textContent = `${this.batteryPercentage}%`;
+                // Add charging indicator
+                let chargingIndicator = '';
+                if (this.batteryCharging === true) {
+                    chargingIndicator = ' ⚡'; // Lightning bolt for charging
+                } else if (this.batteryCharging === false) {
+                    chargingIndicator = ' 🔋'; // Battery for discharging
+                }
+                
+                batteryStatusElement.textContent = `${this.batteryPercentage}%${chargingIndicator}`;
+                
                 // Set color based on battery level
                 if (this.batteryPercentage > 50) {
                     batteryStatusElement.className = 'status-value connected'; // Green
